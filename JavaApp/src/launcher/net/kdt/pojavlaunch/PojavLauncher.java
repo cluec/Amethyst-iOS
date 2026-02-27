@@ -59,21 +59,28 @@ public class PojavLauncher {
     public static void launchMinecraft(String[] args) throws Throwable {
         String gameDir = System.getProperty("user.dir");
 
-        // Tell the game it's running on a Mac to use compatible code paths
+        // Set properties exactly from your PC command line
         System.setProperty("os.name", "Mac OS X");
-        
         System.setProperty("appdir", gameDir);
         System.setProperty("resource_dir", gameDir + "/rsrc");
+        System.setProperty("crucible.dir", gameDir + "/crucible"); // from your -Dcrucible.dir
         System.setProperty("com.threerings.getdown", "true");
         System.setProperty("org.lwjgl.util.NoChecks", "true");
         System.setProperty("sun.java2d.d3d", "false"); 
-        
-        // Corrected the 'Djinput' typo from your previous command line
         System.setProperty("jinput.useDefaultPlugin", "false");
         
+        // Critical for mobile to prevent the game from loading Windows libraries
+        System.setProperty("org.lwjgl.opengl.disableStaticInit", "true");
         System.setProperty("org.lwjgl.vulkan.libname", "libMoltenVK.dylib");
 
+        // The Main Class from your log
         String skMainClass = "com.threerings.projectx.client.ProjectXApp";
-        Tools.launchSpiral(skMainClass, args);
+
+        System.out.println("Launching SK with PC System Properties...");
+
+        // Your PC log shows NO arguments passed to the Main Class
+        String[] skArgs = new String[0]; 
+        
+        Tools.launchSpiral(skMainClass, skArgs);
     }
 }

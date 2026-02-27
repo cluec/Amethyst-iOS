@@ -486,9 +486,16 @@ createLibraryInfo(libItem);
     public static void launchSpiral(String mainClass, String[] args) throws Throwable {
         PojavClassLoader loader = (PojavClassLoader) ClassLoader.getSystemClassLoader();
         
-        // 1. Add internal launcher path
-        for (String s : System.getProperty("java.class.path").split(":")) {
-            if (!s.isEmpty()) loader.addURL(new File(s).toURI().toURL());
+        // Load the Launcher's internal Bridge (Mandatory for SK)
+        String cp = System.getProperty("java.class.path");
+        if (cp != null) {
+            for (String s : cp.split(":")) {
+                if (!s.isEmpty()) {
+                    File f = new File(s);
+                    System.out.println("Internal Bridge Link: " + f.getName());
+                    loader.addURL(f.toURI().toURL());
+                }
+            }
         }
 
         File gameDir = new File(System.getProperty("user.dir"));
@@ -498,37 +505,28 @@ createLibraryInfo(libItem);
             File[] files = codeDir.listFiles();
             if (files != null) {
                 for (File file : files) {
-                    if (file.getName().endsWith(".jar")) {
-                        String name = file.getName().toLowerCase();
+                    String name = file.getName().toLowerCase();
+                    if (name.endsWith(".jar")) {
+                        // EXTREMELY IMPORTANT: We MUST skip the SK lwjgl.jar
+                        // If we load it, it overrides the iOS bridge and kills the app.
                         if (name.contains("getdown") || name.contains("lwjgl") || 
                             name.contains("jinput") || name.contains("jutils") || 
-                            name.contains("jshortcut")) {
-                            continue;
-                        }
-                        // Add this print back so we can verify the iPad sees the jars
-                        System.out.println("Adding to classpath: " + file.getName());
+                            name.contains("jshortcut")) continue;
+
+                        System.out.println("Game Library: " + file.getName());
                         loader.addURL(file.toURI().toURL());
                     }
                 }
             }
         }
 
+        System.out.println("Jumping into ProjectXApp...");
         try {
-            System.out.println("Attempting to load Main Class: " + mainClass);
             Class<?> clazz = loader.loadClass(mainClass);
             Method method = clazz.getMethod("main", String[].class);
-            
-            System.out.println("Invoking ProjectXApp.main()...");
-            method.invoke(null, new Object[]{args});
-
-        } catch (Throwable t) { 
-            // CHANGED TO THROWABLE to catch Errors and Exceptions
-            System.out.println("!!!!! SPIRAL KNIGHTS CRASHED DURING STARTUP !!!!!");
+            method.invoke(null, (Object)args);
+        } catch (Throwable t) {
             t.printStackTrace();
-            if (t.getCause() != null) {
-                System.out.println("Root Cause:");
-                t.getCause().printStackTrace();
-            }
         }
     }
 }

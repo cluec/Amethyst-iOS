@@ -237,11 +237,15 @@ int launchJVM(NSString *username, id launchTarget, int width, int height, int mi
     //margv[++margc] = "-Dorg.lwjgl.util.NoChecks=true";
     margv[++margc] = "-Dlog4j2.formatMsgNoLookups=true";
     // Add these alongside the other margv lines
+    // Add these alongside the other margv[++margc] lines
     margv[++margc] = "--add-opens=java.base/java.lang=ALL-UNNAMED";
     margv[++margc] = "--add-opens=java.base/java.util=ALL-UNNAMED";
     margv[++margc] = "--add-opens=java.base/java.nio=ALL-UNNAMED";
     margv[++margc] = "--add-opens=java.base/sun.nio.ch=ALL-UNNAMED";
     margv[++margc] = "--enable-native-access=ALL-UNNAMED";
+    
+    // Add this here too as a backup
+    margv[++margc] = "-Dorg.lwjgl.opengl.disableStaticInit=true";
 
     // Preset OpenGL libname
     const char *glLibName = getenv("POJAV_RENDERER");
