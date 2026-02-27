@@ -239,6 +239,8 @@ int launchJVM(NSString *username, id launchTarget, int width, int height, int mi
     // Add these alongside the other margv lines
     margv[++margc] = "--add-opens=java.base/java.lang=ALL-UNNAMED";
     margv[++margc] = "--add-opens=java.base/java.util=ALL-UNNAMED";
+    margv[++margc] = "--add-opens=java.base/java.nio=ALL-UNNAMED";
+    margv[++margc] = "--add-opens=java.base/sun.nio.ch=ALL-UNNAMED";
     margv[++margc] = "--enable-native-access=ALL-UNNAMED";
 
     // Preset OpenGL libname

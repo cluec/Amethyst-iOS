@@ -485,6 +485,12 @@ createLibraryInfo(libItem);
     }
     public static void launchSpiral(String mainClass, String[] args) throws Throwable {
         PojavClassLoader loader = (PojavClassLoader) ClassLoader.getSystemClassLoader();
+        
+        // 1. IMPORTANT: Add the launcher's own path so the game can see the LWJGL Bridge
+        for (String s : System.getProperty("java.class.path").split(":")) {
+            loader.addURL(new File(s).toURI().toURL());
+        }
+
         File gameDir = new File(System.getProperty("user.dir"));
         File codeDir = new File(gameDir, "code");
 
@@ -494,29 +500,26 @@ createLibraryInfo(libItem);
                 for (File file : files) {
                     if (file.getName().endsWith(".jar")) {
                         String name = file.getName().toLowerCase();
-                        
-                        // SKIP LIST: These jars are for Windows or are the Updater.
-                        // We MUST skip them so the iOS internal 'Bridge' can work.
-                        if (name.contains("getdown") || 
-                            name.contains("lwjgl") || 
-                            name.contains("jinput") || 
-                            name.contains("jutils") || 
+                        // Skip Windows/Desktop jars
+                        if (name.contains("getdown") || name.contains("lwjgl") || 
+                            name.contains("jinput") || name.contains("jutils") || 
                             name.contains("jshortcut")) {
-                            System.out.println("Skipping desktop-specific jar: " + file.getName());
                             continue;
                         }
-                        
-                        System.out.println("Loading game library: " + file.getName());
                         loader.addURL(file.toURI().toURL());
                     }
                 }
             }
         }
 
-        // Now the game will start using its own code (projectx-pcode, etc.)
-        // but it will use the Launcher's iOS-compatible LWJGL bridge!
-        Class<?> clazz = loader.loadClass(mainClass);
-        Method method = clazz.getMethod("main", String[].class);
-        method.invoke(null, new Object[]{args});
+        // 2. Added a Try/Catch so we can see EXACTLY why it crashes in the log
+        try {
+            Class<?> clazz = loader.loadClass(mainClass);
+            Method method = clazz.getMethod("main", String[].class);
+            method.invoke(null, new Object[]{args});
+        } catch (Exception e) {
+            e.printStackTrace();
+            throw e;
+        }
     }
 }

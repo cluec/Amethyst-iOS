@@ -57,26 +57,23 @@ public class PojavLauncher {
     }
 
     public static void launchMinecraft(String[] args) throws Throwable {
-        // 1. Get the current directory (where you will put your SK files)
         String gameDir = System.getProperty("user.dir");
 
-        // 2. Set the exact properties from your PC command line
+        // Tell the game it's running on a Mac to use compatible code paths
+        System.setProperty("os.name", "Mac OS X");
+        
         System.setProperty("appdir", gameDir);
         System.setProperty("resource_dir", gameDir + "/rsrc");
         System.setProperty("com.threerings.getdown", "true");
         System.setProperty("org.lwjgl.util.NoChecks", "true");
         System.setProperty("sun.java2d.d3d", "false"); 
-        System.setProperty("Djinput.useDefaultPlugin", "false");
         
-        // This is needed for the rendering bridge on iOS
+        // Corrected the 'Djinput' typo from your previous command line
+        System.setProperty("jinput.useDefaultPlugin", "false");
+        
         System.setProperty("org.lwjgl.vulkan.libname", "libMoltenVK.dylib");
 
-        // 3. Define the Spiral Knights Entry Point
         String skMainClass = "com.threerings.projectx.client.ProjectXApp";
-
-        System.out.println("Launching Spiral Knights...");
-
-        // 4. Redirect to the custom loader we are putting in Tools.java
         Tools.launchSpiral(skMainClass, args);
     }
 }
