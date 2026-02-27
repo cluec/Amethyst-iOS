@@ -282,42 +282,25 @@ static void *ProgressObserverContext = &ProgressObserverContext;
 }
 
 - (void)launchMinecraft:(UIButton *)sender {
-    if (!self.versionTextField.hasText) {
-        [self.versionTextField becomeFirstResponder];
-        return;
-    }
-
-
+    // 1. Disable the UI so the user doesn't spam the button
     [self setInteractionEnabled:NO forDownloading:YES];
 
-    NSString *versionId = PLProfiles.current.profiles[self.versionTextField.text][@"lastVersionId"];
-    NSDictionary *object = [remoteVersionList filteredArrayUsingPredicate:[NSPredicate predicateWithFormat:@"(id == %@)", versionId]].firstObject;
-    if (!object) {
-        object = @{
-            @"id": versionId,
-            @"type": @"custom"
+    // 2. We skip all the Minecraft download/check logic.
+    // We just need to make sure JIT is enabled, then start the game view.
+    [self invokeAfterJITEnabled:^{
+        // Create a dummy metadata object just to satisfy the launcher's requirements
+        // We set Java version to 21 here.
+        NSDictionary *dummyMetadata = @{
+            @"id": @"SpiralKnights",
+            @"javaVersion": @{@"majorVersion": @21}
         };
-    }
 
-    self.task = [MinecraftResourceDownloadTask new];
-    dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
-        __weak LauncherNavigationController *weakSelf = self;
-        self.task.handleError = ^{
-            dispatch_async(dispatch_get_main_queue(), ^{
-                [weakSelf setInteractionEnabled:YES forDownloading:YES];
-                weakSelf.task = nil;
-                weakSelf.progressVC = nil;
-            });
-        };
-        [self.task downloadVersion:object];
-        dispatch_async(dispatch_get_main_queue(), ^{
-            self.progressViewMain.observedProgress = self.task.progress;
-            [self.task.progress addObserver:self
-                forKeyPath:@"fractionCompleted"
-                options:NSKeyValueObservingOptionInitial
-                context:ProgressObserverContext];
-        });
-    });
+        // 3. Tell the app to switch to the game screen
+        UIKit_launchMinecraftSurfaceVC(self.view.window, dummyMetadata);
+        
+        // 4. Reset the UI state in the background
+        [self setInteractionEnabled:YES forDownloading:YES];
+    }];
 }
 
 - (void)performInstallOrShowDetails:(UIBarButtonItem *)sender {

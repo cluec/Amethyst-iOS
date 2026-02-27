@@ -47,7 +47,9 @@ public class PojavLauncher {
             Class.forName("com.github.caciocavallosilano.cacio.ctc.CTCPreloadClassLoader");
         } catch (ClassNotFoundException e) {}
 
-        if (args[0].equals("-jar")) {
+        // Safety check: If no args are provided (like when we skip login), 
+        // just go straight to Spiral Knights.
+        if (args != null && args.length > 0 && args[0].equals("-jar")) {
             UIKit.callback_JavaGUIViewController_launchJarFile(args[1], Arrays.copyOfRange(args, 2, args.length));
         } else {
             launchMinecraft(args);
