@@ -486,8 +486,9 @@ createLibraryInfo(libItem);
     public static void launchSpiral(String mainClass, String[] args) throws Throwable {
         PojavClassLoader loader = (PojavClassLoader) ClassLoader.getSystemClassLoader();
         
-        // 1. Force-load the Launcher's own UI and Bridge jars (Crucial!)
+        // 1. Force-load ALL internal launcher libraries (Bridge, UI, Caciocavallo)
         String bundlePath = System.getenv("BUNDLE_PATH");
+        // We scan all 3 folders to ensure the MouseReader classes are found
         String[] internalFolders = {"/libs", "/libs_caciocavallo17", "/libs_caciocavallo"};
         
         for (String folderName : internalFolders) {
@@ -501,7 +502,7 @@ createLibraryInfo(libItem);
             }
         }
 
-        // 2. Load Game Jars
+        // 2. Load Game Jars (Skip Windows versions)
         File gameDir = new File(System.getProperty("user.dir"));
         File codeDir = new File(gameDir, "code");
         if (codeDir.exists() && codeDir.isDirectory()) {
@@ -516,13 +517,12 @@ createLibraryInfo(libItem);
             }
         }
 
-        System.out.println("Initializing Game Thread...");
+        System.out.println("Starting Game Thread (Bridge Enabled)...");
         try {
             Class<?> clazz = loader.loadClass(mainClass);
             Method method = clazz.getMethod("main", String[].class);
             method.invoke(null, (Object)args);
         } catch (Throwable t) {
-            System.out.println("ProjectXApp Error Trace:");
             t.printStackTrace();
             if (t.getCause() != null) t.getCause().printStackTrace();
         }
