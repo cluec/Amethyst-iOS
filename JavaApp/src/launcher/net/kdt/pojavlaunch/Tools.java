@@ -486,9 +486,9 @@ createLibraryInfo(libItem);
     public static void launchSpiral(String mainClass, String[] args) throws Throwable {
         PojavClassLoader loader = (PojavClassLoader) ClassLoader.getSystemClassLoader();
         
-        // 1. IMPORTANT: Add the launcher's own path so the game can see the LWJGL Bridge
+        // 1. Add internal launcher path
         for (String s : System.getProperty("java.class.path").split(":")) {
-            loader.addURL(new File(s).toURI().toURL());
+            if (!s.isEmpty()) loader.addURL(new File(s).toURI().toURL());
         }
 
         File gameDir = new File(System.getProperty("user.dir"));
@@ -500,26 +500,35 @@ createLibraryInfo(libItem);
                 for (File file : files) {
                     if (file.getName().endsWith(".jar")) {
                         String name = file.getName().toLowerCase();
-                        // Skip Windows/Desktop jars
                         if (name.contains("getdown") || name.contains("lwjgl") || 
                             name.contains("jinput") || name.contains("jutils") || 
                             name.contains("jshortcut")) {
                             continue;
                         }
+                        // Add this print back so we can verify the iPad sees the jars
+                        System.out.println("Adding to classpath: " + file.getName());
                         loader.addURL(file.toURI().toURL());
                     }
                 }
             }
         }
 
-        // 2. Added a Try/Catch so we can see EXACTLY why it crashes in the log
         try {
+            System.out.println("Attempting to load Main Class: " + mainClass);
             Class<?> clazz = loader.loadClass(mainClass);
             Method method = clazz.getMethod("main", String[].class);
+            
+            System.out.println("Invoking ProjectXApp.main()...");
             method.invoke(null, new Object[]{args});
-        } catch (Exception e) {
-            e.printStackTrace();
-            throw e;
+
+        } catch (Throwable t) { 
+            // CHANGED TO THROWABLE to catch Errors and Exceptions
+            System.out.println("!!!!! SPIRAL KNIGHTS CRASHED DURING STARTUP !!!!!");
+            t.printStackTrace();
+            if (t.getCause() != null) {
+                System.out.println("Root Cause:");
+                t.getCause().printStackTrace();
+            }
         }
     }
 }
