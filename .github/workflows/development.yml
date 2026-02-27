@@ -92,6 +92,11 @@ jobs:
           echo "Downloading JRE 21..."
           curl -L "https://crystall1ne.dev/cdn/amethyst-ios/jre21-ios-aarch64.zip" -o depends/jre21-ios-aarch64.zip
           unzip -o depends/jre21-ios-aarch64.zip -d depends
+      - name: Setup Java 8
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'zulu' # Zulu is reliable for this build
+          java-version: '8'
       - name: Install Dependencies
         run: |
           brew install make ldid wget
