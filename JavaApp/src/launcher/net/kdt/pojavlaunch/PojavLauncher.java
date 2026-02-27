@@ -62,7 +62,7 @@ public class PojavLauncher {
         if (sizeStr == null) sizeStr = "1024x768"; // Fallback
         System.setProperty("glfw.windowSize", sizeStr);
         // Set properties exactly from your PC command line
-        System.setProperty("os.name", "Mac OS X");
+        System.setProperty("os.name", "Linux");
         System.setProperty("appdir", gameDir);
         System.setProperty("resource_dir", gameDir + "/rsrc");
         System.setProperty("crucible.dir", gameDir + "/crucible"); // from your -Dcrucible.dir

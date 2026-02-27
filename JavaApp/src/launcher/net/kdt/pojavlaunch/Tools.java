@@ -486,47 +486,45 @@ createLibraryInfo(libItem);
     public static void launchSpiral(String mainClass, String[] args) throws Throwable {
         PojavClassLoader loader = (PojavClassLoader) ClassLoader.getSystemClassLoader();
         
-        // Load the Launcher's internal Bridge (Mandatory for SK)
-        String cp = System.getProperty("java.class.path");
-        if (cp != null) {
-            for (String s : cp.split(":")) {
-                if (!s.isEmpty()) {
-                    File f = new File(s);
-                    System.out.println("Internal Bridge Link: " + f.getName());
-                    loader.addURL(f.toURI().toURL());
-                }
-            }
-        }
-
-        File gameDir = new File(System.getProperty("user.dir"));
-        File codeDir = new File(gameDir, "code");
-
-        if (codeDir.exists() && codeDir.isDirectory()) {
-            File[] files = codeDir.listFiles();
-            if (files != null) {
-                for (File file : files) {
-                    String name = file.getName().toLowerCase();
-                    if (name.endsWith(".jar")) {
-                        // EXTREMELY IMPORTANT: We MUST skip the SK lwjgl.jar
-                        // If we load it, it overrides the iOS bridge and kills the app.
-                        if (name.contains("getdown") || name.contains("lwjgl") || 
-                            name.contains("jinput") || name.contains("jutils") || 
-                            name.contains("jshortcut")) continue;
-
-                        System.out.println("Game Library: " + file.getName());
+        // 1. Force-load the Launcher's own UI and Bridge jars (Crucial!)
+        String bundlePath = System.getenv("BUNDLE_PATH");
+        String[] internalFolders = {"/libs", "/libs_caciocavallo17", "/libs_caciocavallo"};
+        
+        for (String folderName : internalFolders) {
+            File folder = new File(bundlePath + folderName);
+            if (folder.exists() && folder.isDirectory()) {
+                for (File file : folder.listFiles()) {
+                    if (file.getName().endsWith(".jar")) {
                         loader.addURL(file.toURI().toURL());
                     }
                 }
             }
         }
 
-        System.out.println("Jumping into ProjectXApp...");
+        // 2. Load Game Jars
+        File gameDir = new File(System.getProperty("user.dir"));
+        File codeDir = new File(gameDir, "code");
+        if (codeDir.exists() && codeDir.isDirectory()) {
+            for (File file : codeDir.listFiles()) {
+                if (file.getName().endsWith(".jar")) {
+                    String name = file.getName().toLowerCase();
+                    if (name.contains("getdown") || name.contains("lwjgl") || 
+                        name.contains("jinput") || name.contains("jutils") || 
+                        name.contains("jshortcut")) continue;
+                    loader.addURL(file.toURI().toURL());
+                }
+            }
+        }
+
+        System.out.println("Initializing Game Thread...");
         try {
             Class<?> clazz = loader.loadClass(mainClass);
             Method method = clazz.getMethod("main", String[].class);
             method.invoke(null, (Object)args);
         } catch (Throwable t) {
+            System.out.println("ProjectXApp Error Trace:");
             t.printStackTrace();
+            if (t.getCause() != null) t.getCause().printStackTrace();
         }
     }
 }
