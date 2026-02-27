@@ -55,52 +55,26 @@ public class PojavLauncher {
     }
 
     public static void launchMinecraft(String[] args) throws Throwable {
-        // Args for Spiral Knights
-        System.setProperty("appdir", "./spiral");
-        System.setProperty("resource_dir", "./spiral/rsrc");
+        // 1. Get the current directory (where you will put your SK files)
+        String gameDir = System.getProperty("user.dir");
 
-        String sizeStr = System.getProperty("cacio.managed.screensize");
-        System.setProperty("glfw.windowSize", sizeStr);
-        String[] size = sizeStr.split("x");
-        MCOptionUtils.load();
-        MCOptionUtils.set("fullscreen", "false");
-        MCOptionUtils.set("overrideWidth", size[0]);
-        MCOptionUtils.set("overrideHeight", size[1]);
-        // Default settings for performance
-        MCOptionUtils.setDefault("mipmapLevels", "0");
-        MCOptionUtils.setDefault("particles", "1");
-        MCOptionUtils.setDefault("renderDistance", "2");
-        MCOptionUtils.setDefault("simulationDistance", "5");
-        MCOptionUtils.save();
-
-        // Setup Forge splash.properties
-        File forgeSplashFile = new File(Tools.DIR_GAME_NEW, "config/splash.properties");
-        if (System.getProperty("pojav.internal.keepForgeSplash") == null) {
-            forgeSplashFile.getParentFile().mkdir();
-            if (forgeSplashFile.exists()) {
-                Tools.write(forgeSplashFile.getAbsolutePath(), Tools.read(forgeSplashFile.getAbsolutePath().replace("enabled=true", "enabled=false")));
-            } else {
-                Tools.write(forgeSplashFile.getAbsolutePath(), "enabled=false");
-            }
-        }
-
+        // 2. Set the exact properties from your PC command line
+        System.setProperty("appdir", gameDir);
+        System.setProperty("resource_dir", gameDir + "/rsrc");
+        System.setProperty("com.threerings.getdown", "true");
+        System.setProperty("org.lwjgl.util.NoChecks", "true");
+        System.setProperty("sun.java2d.d3d", "false"); 
+        System.setProperty("Djinput.useDefaultPlugin", "false");
+        
+        // This is needed for the rendering bridge on iOS
         System.setProperty("org.lwjgl.vulkan.libname", "libMoltenVK.dylib");
 
-        MinecraftAccount account = MinecraftAccount.load(args[0]);
-        JMinecraftVersionList.Version version = Tools.getVersionInfo(args[1]);
-        System.out.println("Launching Minecraft " + version.id);
-        String configPath;
-        if (version.logging != null) {
-            if (version.logging.client.file.id.equals("client-1.12.xml")) {
-                configPath = Tools.DIR_BUNDLE + "/log4j-rce-patch-1.12.xml";
-            } else if (version.logging.client.file.id.equals("client-1.7.xml")) {
-                configPath = Tools.DIR_BUNDLE + "/log4j-rce-patch-1.7.xml";
-            } else {
-                configPath = Tools.DIR_GAME_NEW + "/" + version.logging.client.file.id;
-            }
-            System.setProperty("log4j.configurationFile", configPath);
-        }
+        // 3. Define the Spiral Knights Entry Point
+        String skMainClass = "com.threerings.projectx.client.ProjectXApp";
 
-        Tools.launchMinecraft(account, version);
+        System.out.println("Launching Spiral Knights...");
+
+        // 4. Redirect to the custom loader we are putting in Tools.java
+        Tools.launchSpiral(skMainClass, args);
     }
 }

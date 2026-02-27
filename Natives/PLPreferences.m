@@ -50,9 +50,9 @@
         @"java": @{
             @"java_homes": @{
                 @"0": @{
-                    @"1_16_5_older": @"8",
-                    @"1_17_newer": @"17",
-                    @"execute_jar": @"8"
+                    @"1_16_5_older": @"21",
+                    @"1_17_newer": @"21",
+                    @"execute_jar": @"21"
                 }.mutableCopy,
                 @"8": @"internal",
                 @"17": @"internal",

@@ -287,13 +287,6 @@ static void *ProgressObserverContext = &ProgressObserverContext;
         return;
     }
 
-    if (BaseAuthenticator.current == nil) {
-        // Present the account selector if none selected
-        UIViewController *view = [(UINavigationController *)self.splitViewController.viewControllers[0]
-        viewControllers][0];
-        [view performSelector:@selector(selectAccount:) withObject:sender];
-        return;
-    }
 
     [self setInteractionEnabled:NO forDownloading:YES];
 
