@@ -58,7 +58,9 @@ public class PojavLauncher {
 
     public static void launchMinecraft(String[] args) throws Throwable {
         String gameDir = System.getProperty("user.dir");
-
+        String sizeStr = System.getProperty("cacio.managed.screensize");
+        if (sizeStr == null) sizeStr = "1024x768"; // Fallback
+        System.setProperty("glfw.windowSize", sizeStr);
         // Set properties exactly from your PC command line
         System.setProperty("os.name", "Mac OS X");
         System.setProperty("appdir", gameDir);
