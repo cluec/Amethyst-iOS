@@ -486,24 +486,35 @@ createLibraryInfo(libItem);
     public static void launchSpiral(String mainClass, String[] args) throws Throwable {
         PojavClassLoader loader = (PojavClassLoader) ClassLoader.getSystemClassLoader();
         File gameDir = new File(System.getProperty("user.dir"));
-        
-        // We add the root folder AND the /code folder to the search path
-        File[] searchFolders = { gameDir, new File(gameDir, "code") };
-        
-        for (File folder : searchFolders) {
-            if (folder.exists() && folder.isDirectory()) {
-                File[] files = folder.listFiles();
-                if (files != null) {
-                    for (File file : files) {
-                        if (file.getName().endsWith(".jar")) {
-                            // This effectively builds the -classpath you see on your PC
-                            loader.addURL(file.toURI().toURL());
+        File codeDir = new File(gameDir, "code");
+
+        if (codeDir.exists() && codeDir.isDirectory()) {
+            File[] files = codeDir.listFiles();
+            if (files != null) {
+                for (File file : files) {
+                    if (file.getName().endsWith(".jar")) {
+                        String name = file.getName().toLowerCase();
+                        
+                        // SKIP LIST: These jars are for Windows or are the Updater.
+                        // We MUST skip them so the iOS internal 'Bridge' can work.
+                        if (name.contains("getdown") || 
+                            name.contains("lwjgl") || 
+                            name.contains("jinput") || 
+                            name.contains("jutils") || 
+                            name.contains("jshortcut")) {
+                            System.out.println("Skipping desktop-specific jar: " + file.getName());
+                            continue;
                         }
+                        
+                        System.out.println("Loading game library: " + file.getName());
+                        loader.addURL(file.toURI().toURL());
                     }
                 }
             }
         }
 
+        // Now the game will start using its own code (projectx-pcode, etc.)
+        // but it will use the Launcher's iOS-compatible LWJGL bridge!
         Class<?> clazz = loader.loadClass(mainClass);
         Method method = clazz.getMethod("main", String[].class);
         method.invoke(null, new Object[]{args});
