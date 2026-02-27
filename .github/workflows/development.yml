@@ -78,17 +78,20 @@ jobs:
           git add Natives/resources/Frameworks/libgl4es_114.dylib
           git commit -am "CI: Update gl4es"
           git push
-      - name: Get JRE21
-        uses: dawidd6/action-download-artifact@v2
-        with:
-          github_token: ${{secrets.GITHUB_TOKEN}}
-          workflow: build.yml
-          path: depends
-          workflow_conclusion: completed
-          allow_forks: false
-          repo: PojavLauncherTeam/android-openjdk-build-multiarch
-          branch: buildjre17-21
-          name: jre21-ios-aarch64
+      - name: Get JREs (Direct Download)
+        run: |
+          mkdir -p depends
+          echo "Downloading JRE 8..."
+          curl -L "https://crystall1ne.dev/cdn/amethyst-ios/jre8-ios-aarch64.zip" -o depends/jre8-ios-aarch64.zip
+          unzip -o depends/jre8-ios-aarch64.zip -d depends
+          
+          echo "Downloading JRE 17..."
+          curl -L "https://crystall1ne.dev/cdn/amethyst-ios/jre17-ios-aarch64.zip" -o depends/jre17-ios-aarch64.zip
+          unzip -o depends/jre17-ios-aarch64.zip -d depends
+          
+          echo "Downloading JRE 21..."
+          curl -L "https://crystall1ne.dev/cdn/amethyst-ios/jre21-ios-aarch64.zip" -o depends/jre21-ios-aarch64.zip
+          unzip -o depends/jre21-ios-aarch64.zip -d depends
       - name: Build for ${{ matrix.platform_name }}
         run: |
           export PATH=/opt/homebrew/bin:$PATH
