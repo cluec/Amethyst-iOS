@@ -83,6 +83,14 @@ public class PojavLauncher {
         System.setProperty("sun.java2d.opengl", "true"); // Ensure Java uses the OGL pipeline
         System.setProperty("com.threerings.opengl.no_shaders", "true");
         System.setProperty("com.threerings.projectx.low_spec", "true");
+        System.setProperty("com.threerings.opengl.force_low_spec", "true"); 
+        System.setProperty("com.threerings.opengl.num_layers", "1"); // Reduce overdraw
+        System.setProperty("com.threerings.projectx.low_spec", "true");
+        System.setProperty("org.lwjgl.opengl.Display.noResizable", "true");
+
+        // Important: Java2D can conflict with GL4ES if not handled.
+        System.setProperty("sun.java2d.opengl", "true");
+        System.setProperty("sun.java2d.noddraw", "true");
         
         // 4. THE CRITICAL FIXES FOR THE LOG ERRORS YOU SENT:
         // This stops the ArrayIndexOutOfBounds in Display.setIcon

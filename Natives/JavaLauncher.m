@@ -32,33 +32,35 @@ BOOL validateVirtualMemorySpace(size_t size) {
 }
 
 void init_loadDefaultEnv() {
-    /* Define default env */
-
-    // Silent Caciocavallo NPE error in locating Android-only lib
     setenv("LD_LIBRARY_PATH", "", 1);
-
-    // Ignore mipmap for performance(?) seems does not affect iOS
-    //setenv("LIBGL_MIPMAP", "3", 1);
-
-    // Disable overloaded functions hack for Minecraft 1.17+
+    
+    // --- COMPATIBILITY FIXES ---
+    // Spiral Knights is OpenGL 1.5 era. Tell GL4ES to prioritize Fixed Function Emulation (FPE)
+    setenv("LIBGL_DEFAULT_FPE", "1", 1);
+    setenv("LIBGL_GLSL_VERSION", "100", 1); // Force GLES 2.0 compatible shader output
+    
+    // Fixes the "undeclared identifier" by telling GL4ES how to map variables
+    setenv("LIBGL_REMAP_VARYING", "1", 1);
+    setenv("LIBGL_VERSION", "1.5", 1); // The game expects 1.5, don't fake 2.1 if not needed
+    
+    // --- RENDERING QUALITY/BUG FIXES ---
     setenv("LIBGL_NOINTOVLHACK", "1", 1);
-
-    // Fix white color on banner and sheep, since GL4ES 1.1.5
     setenv("LIBGL_NORMALIZE", "1", 1);
+    setenv("LIBGL_ALPHA", "1", 1);
+    setenv("LIBGL_FBO", "1", 1);
 
-    // Override OpenGL version to 4.1 for Zink
-    //setenv("MESA_GL_VERSION_OVERRIDE", "4.1", 1);
-    setenv("LIBGL_VERSION", "1.5", 1);
-
-    // Runs JVM in a separate thread
+    // --- PERFORMANCE BOOSTS ---
+    // Enable draw call batching - THIS IS THE BIGGEST FPS GAIN
+    setenv("LIBGL_BATCH", "1", 1); 
+    setenv("LIBGL_BATCH_VBO", "1", 1);
+    setenv("LIBGL_USEVBO", "1", 1);
+    setenv("LIBGL_VBO", "1", 1);
+    
+    // iOS Specific: Disable error checking for speed
+    setenv("LIBGL_NOERROR", "1", 1);
+    setenv("LIBGL_NOTEXRECT", "1", 1);
+    
     setenv("HACK_IGNORE_START_ON_FIRST_THREAD", "1", 1);
-
-     // --- GL4ES SPEED BOOSTS ---
-    setenv("LIBGL_USEVBO", "1", 1);     // Moves 3D data to GPU memory instead of CPU
-    setenv("LIBGL_FBO", "1", 1);        // Better frame buffer handling
-    setenv("LIBGL_NOERROR", "1", 1);    // Skip error checking to save CPU cycles
-    setenv("LIBGL_NOTEXRECT", "1", 1);  // Use standard textures (faster)
-    setenv("LIBGL_ALPHA", "1", 1);      // Fixes some transparency issues
 }
 
 void init_loadCustomEnv() {
@@ -252,6 +254,20 @@ int launchJVM(NSString *username, id launchTarget, int width, int height, int mi
     margv[++margc] = "--add-opens=java.base/sun.nio.ch=ALL-UNNAMED";
     margv[++margc] = "--enable-native-access=ALL-UNNAMED";
     margv[++margc] = "-Dpojav.internal.skipSetIcon=true"; // Native backup
+
+    // Better Garbage Collection for limited memory
+    // Change SerialGC to G1GC (Better for multi-core CPUs like the A15 in iPad mini 6)
+    margv[++margc] = "-XX:+UseG1GC"; 
+    margv[++margc] = "-XX:MaxGCPauseMillis=20"; // Try to keep pauses under 20ms
+    margv[++margc] = "-XX:InitiatingHeapOccupancyPercent=35";
+
+    // Since iPad mini 6 has 4GB RAM, you can safely bump allocation to 1200-1500MB 
+    // if you have the "Increased Memory Limit" entitlement.
+    // If you are crashing on launch, keep your 967MB limit.
+
+    // Optimization for ARM64
+    margv[++margc] = "-XX:+UseCompressedOops";
+    margv[++margc] = "-XX:+UseCompressedClassPointers";
 
     // try performance increase
     margv[++margc] = "-Dlibgl.none=true";            // Use optimized internal paths
