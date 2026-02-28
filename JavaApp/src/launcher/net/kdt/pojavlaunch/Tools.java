@@ -487,7 +487,7 @@ createLibraryInfo(libItem);
         PojavClassLoader loader = (PojavClassLoader) ClassLoader.getSystemClassLoader();
         String bundlePath = System.getenv("BUNDLE_PATH");
         
-        // 1. Force bridge into memory FIRST
+        //Force bridge into memory FIRST
         String[] internalFolders = {"/libs", "/libs_caciocavallo17", "/libs_caciocavallo"};
         for (String folderName : internalFolders) {
             File folder = new File(bundlePath + folderName);
@@ -498,7 +498,7 @@ createLibraryInfo(libItem);
             }
         }
 
-        // 2. Load Game Jars
+        //Load Game Jars
         File gameDir = new File(System.getProperty("user.dir"));
         File codeDir = new File(gameDir, "code");
         if (codeDir.exists()) {

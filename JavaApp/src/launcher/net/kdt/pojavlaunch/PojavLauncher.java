@@ -62,13 +62,13 @@ public class PojavLauncher {
         System.setProperty("glfw.windowSize", "800x600");
         System.setProperty("cacio.managed.screensize", "800x600");
 
-        DISABLE ALL SHADERS - Fixes the "Incorrect Graphics" and "varying Color" errors
+        //DISABLE ALL SHADERS - Fixes the "Incorrect Graphics" and "varying Color" errors
         System.setProperty("com.threerings.opengl.no_shaders", "true");
         System.setProperty("com.threerings.projectx.no_vertex_shaders", "true");
         System.setProperty("com.threerings.projectx.no_fragment_shaders", "true");
         System.setProperty("com.threerings.opengl.force_low_spec", "true");
 
-        3. System Properties
+        //System Properties
         System.setProperty("os.name", "Mac OS X");
         System.setProperty("appdir", gameDir);
         System.setProperty("resource_dir", gameDir + "/rsrc");
@@ -76,7 +76,7 @@ public class PojavLauncher {
         System.setProperty("com.threerings.getdown", "true");
         System.setProperty("no_update", "true");
         
-        CRASH FIXES
+        //CRASH FIXES
         System.setProperty("pojav.internal.skipSetIcon", "true");
         System.setProperty("lwjgl.util.NoChecks", "true");
         System.setProperty("cacio.toolkit.package", "com.github.caciocavallosilano.cacio.ctc");
