@@ -32,21 +32,18 @@ BOOL validateVirtualMemorySpace(size_t size) {
 }
 
 void init_loadDefaultEnv() {
-    // Force GLES 2.0 (Stops the GLSL 300 es errors)
-    setenv("LIBGL_ES", "2", 1);
-    setenv("LIBGL_GLSL", "120", 1); 
+    Disable Batching (This STOPS the memmove crash)
+    setenv("LIBGL_BATCH", "0", 1); 
     
-    // Performance & Correctness hacks
-    setenv("LIBGL_BATCH", "1", 1);      // We can turn this back on now
-    setenv("LIBGL_USEVBO", "1", 1);
-    setenv("LIBGL_FBO", "1", 1);
-    setenv("LIBGL_NOERROR", "1", 1);
-    setenv("LIBGL_NOTEXRECT", "1", 1);
+   Compatibility Envs
+    setenv("LIBGL_ES", "2", 1);         // Use GLES 2.0
+    setenv("LIBGL_GLSL", "120", 1);     // Use old shader language
+    setenv("LIBGL_USEVBO", "1", 1);     // GPU Buffers ON
+    setenv("LIBGL_NOERROR", "1", 1);    // Ignore errors for speed
+    setenv("LIBGL_NOTEXRECT", "1", 1);  // Standard textures only
     
-    // Fix the "Varying Color" mismatch error from your log
-    setenv("LIBGL_VARYING_FIX", "1", 1); 
-    
-    // Force a fake version string so the engine doesn't see (null)
+    //Fix the "Varying Color" mismatch and "Null Version"
+    setenv("LIBGL_VARYING_FIX", "1", 1);
     setenv("LIBGL_VERSION", "2.1", 1);
 }
 

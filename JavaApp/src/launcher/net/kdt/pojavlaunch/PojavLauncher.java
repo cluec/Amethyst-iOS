@@ -59,41 +59,32 @@ public class PojavLauncher {
     public static void launchMinecraft(String[] args) throws Throwable {
         String gameDir = System.getProperty("user.dir");
 
-        // Mandatory Graphics Bridge Fix
-        String sizeStr = System.getProperty("cacio.managed.screensize");
-        if (sizeStr == null) sizeStr = "1024x768";
-        System.setProperty("glfw.windowSize", sizeStr);
-        System.setProperty("UIScreen.maximumFramesPerSecond", "60");
+        System.setProperty("glfw.windowSize", "800x600");
+        System.setProperty("cacio.managed.screensize", "800x600");
 
-        // Identity & Version Fixes
-        System.setProperty("os.name", "Mac OS X");
-        System.setProperty("gl4es.version", "2.1"); // Force gl4es to report 2.1
-        
-        // DISABLE SHADERS 
+        // 2. DISABLE ALL SHADERS - Fixes the "Incorrect Graphics" and "varying Color" errors
         System.setProperty("com.threerings.opengl.no_shaders", "true");
         System.setProperty("com.threerings.projectx.no_vertex_shaders", "true");
         System.setProperty("com.threerings.projectx.no_fragment_shaders", "true");
-        
-        // CRASH & UI FIXES:
-        System.setProperty("pojav.internal.skipSetIcon", "true");
-        System.setProperty("lwjgl.util.NoChecks", "true");
-        System.setProperty("cacio.toolkit.package", "com.github.caciocavallosilano.cacio.ctc");
+        System.setProperty("com.threerings.opengl.force_low_spec", "true");
 
-        
+        // 3. System Properties
+        System.setProperty("os.name", "Mac OS X");
         System.setProperty("appdir", gameDir);
         System.setProperty("resource_dir", gameDir + "/rsrc");
         System.setProperty("crucible.dir", gameDir + "/crucible");
         System.setProperty("com.threerings.getdown", "true");
         System.setProperty("no_update", "true");
-        System.setProperty("jinput.useDefaultPlugin", "false");
+        
+        // 4. CRASH FIXES
+        System.setProperty("pojav.internal.skipSetIcon", "true");
+        System.setProperty("lwjgl.util.NoChecks", "true");
+        System.setProperty("cacio.toolkit.package", "com.github.caciocavallosilano.cacio.ctc");
         
         System.setProperty("org.lwjgl.opengl.disableStaticInit", "true");
         System.setProperty("org.lwjgl.vulkan.libname", "libMoltenVK.dylib");
 
         String skMainClass = "com.threerings.projectx.client.ProjectXApp";
-        String[] skArgs = new String[0]; 
-
-        System.out.println("Starting SK (Final Graphics Compatibility Mode)...");
-        Tools.launchSpiral(skMainClass, skArgs);
+        Tools.launchSpiral(skMainClass, new String[0]);
     }
 }

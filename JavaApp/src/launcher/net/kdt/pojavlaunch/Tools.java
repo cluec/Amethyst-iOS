@@ -485,22 +485,15 @@ createLibraryInfo(libItem);
     }
     public static void launchSpiral(String mainClass, String[] args) throws Throwable {
         PojavClassLoader loader = (PojavClassLoader) ClassLoader.getSystemClassLoader();
-        
-        // 1. Force-load ALL internal launcher libraries
-        // We include both cacio and cacio17 so Java 21 has the "Dictionary" for old SK commands
         String bundlePath = System.getenv("BUNDLE_PATH");
-        String[] internalFolders = {"/libs", "/libs_caciocavallo", "/libs_caciocavallo17"};
         
+        // 1. Force bridge into memory FIRST
+        String[] internalFolders = {"/libs", "/libs_caciocavallo17", "/libs_caciocavallo"};
         for (String folderName : internalFolders) {
             File folder = new File(bundlePath + folderName);
-            if (folder.exists() && folder.isDirectory()) {
-                File[] libFiles = folder.listFiles();
-                if (libFiles != null) {
-                    for (File file : libFiles) {
-                        if (file.getName().endsWith(".jar")) {
-                            loader.addURL(file.toURI().toURL());
-                        }
-                    }
+            if (folder.exists()) {
+                for (File file : folder.listFiles()) {
+                    if (file.getName().endsWith(".jar")) loader.addURL(file.toURI().toURL());
                 }
             }
         }
