@@ -34,27 +34,28 @@ BOOL validateVirtualMemorySpace(size_t size) {
 void init_loadDefaultEnv() {
     setenv("LD_LIBRARY_PATH", "", 1);
     
-    // --- TEXT CLARITY FIX ---
-    setenv("LIBGL_SHRINK", "0", 1);        // Disable shrinking to make text sharp again
-    setenv("LIBGL_MIPMAP", "2", 1);        // Enable clean texture downscaling for UI elements
+    // --- STOP THE "SPAWN" CRASH ---
+    setenv("LIBGL_VBO", "0", 1);            // Disable auto-VBO (it's what crashed when Slags spawned)
+    setenv("LIBGL_STREAM_VBO", "1", 1);     // Use Streaming instead (stable for mob spawning)
+    setenv("LIBGL_FORCE_COPY", "1", 1);     // Required to sanitize memory
+    setenv("LIBGL_ALIGNEDARRAY", "1", 1);   // Required for ARM64 stability
     
-    // --- LIGHTING IMPROVEMENTS ---
-    setenv("LIBGL_DEFAULT_FPE", "1", 1);   // Keep this!
-    setenv("LIBGL_VERSION", "2.1", 1);     // Upgrade to 2.1 - provides better lighting math than 1.5
-    setenv("LIBGL_TEXGEN", "1", 1);        // Handle character and armor reflections
-    setenv("LIBGL_TEX_N_COORD", "4", 1);   // Keep at 4 for multi-layer textures (lighting/glow)
+    // --- FIX LIGHTING & TEXTURE ERRORS ---
+    setenv("LIBGL_DEFAULT_FPE", "1", 1);
+    setenv("LIBGL_VERSION", "1.5", 1);      // Match "Compatibility Mode" exactly
+    setenv("LIBGL_TEX_N_COORD", "4", 1);    // 4 layers for Glow/Base/Mask/Light
+    setenv("LIBGL_TEXGEN", "1", 1);         // Fixes lighting reflections on armor
+    setenv("LIBGL_COLOR_ALPHA", "1", 1);    // Improves transparency blending (Glows)
     
-    // --- KEEP STABILITY (To prevent the previous crashes) ---
-    setenv("LIBGL_VBO", "3", 1);           
-    setenv("LIBGL_WRAP_INDEX", "1", 1);    
-    setenv("LIBGL_FORCE_COPY", "1", 1);    
-    setenv("LIBGL_ALIGNEDARRAY", "1", 1);
+    // --- TEXT CLARITY ---
+    setenv("LIBGL_SHRINK", "0", 1);         // Sharp text (0 = No shrinking)
+    setenv("LIBGL_MIPMAP", "3", 1);         // Smoother downscaling for UI
     
-    // --- PERFORMANCE & UI STABILITY ---
+    // --- PERFORMANCE ---
     setenv("LIBGL_NOERROR", "1", 1);
-    setenv("LIBGL_NOTEXRECT", "1", 1);     // Helps UI alignment on iOS
-    setenv("LIBGL_ALPHA", "1", 1);         // Essential for glows and transparent lighting
-    
+    setenv("LIBGL_NOTEXRECT", "1", 1);
+    setenv("LIBGL_ALPHA", "1", 1);
+
     setenv("HACK_IGNORE_START_ON_FIRST_THREAD", "1", 1);
 }
 void init_loadCustomEnv() {
@@ -251,7 +252,7 @@ int launchJVM(NSString *username, id launchTarget, int width, int height, int mi
 
     // Better Garbage Collection for limited memory
     // Change SerialGC to G1GC (Better for multi-core CPUs like the A15 in iPad mini 6)
-    margv[++margc] = "-XX:+UseSerialGC"; 
+    //margv[++margc] = "-XX:+UseSerialGC"; 
     //margv[++margc] = "-XX:MaxGCPauseMillis=20"; // Try to keep pauses under 20ms
     margv[++margc] = "-XX:InitiatingHeapOccupancyPercent=35";
     //margv[++margc] = "-Xmx1024M"; 
@@ -259,8 +260,7 @@ int launchJVM(NSString *username, id launchTarget, int width, int height, int mi
     //margv[++margc] = "-Xmx768M"; 
     //margv[++margc] = "-Xms128M";
 
-    // Add this to help with the "Undeclared Identifier" errors in your logs
-    margv[++margc] = "-Dlibgl.fpe=1";
+    margv[++margc] = "-Dlibgl.none=true"; // Tells GL4ES to skip its own internal debug checks
 
     // Since iPad mini 6 has 4GB RAM, you can safely bump allocation to 1200-1500MB 
     // if you have the "Increased Memory Limit" entitlement.

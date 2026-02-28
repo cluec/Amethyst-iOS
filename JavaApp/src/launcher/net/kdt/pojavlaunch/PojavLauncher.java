@@ -82,7 +82,7 @@ public class PojavLauncher {
         System.setProperty("com.threerings.projectx.no_fragment_shaders", "true");
         System.setProperty("sun.java2d.opengl", "true"); // Ensure Java uses the OGL pipeline
         System.setProperty("com.threerings.opengl.no_shaders", "true");
-        System.setProperty("com.threerings.projectx.low_spec", "true");
+        System.setProperty("com.threerings.projectx.low_spec", "false");
         System.setProperty("com.threerings.opengl.force_low_spec", "false"); 
         System.setProperty("com.threerings.opengl.num_layers", "4"); // Reduce overdraw
         //System.setProperty("com.threerings.projectx.low_spec", "true");
@@ -93,6 +93,12 @@ public class PojavLauncher {
 
       
         System.setProperty("com.threerings.opengl.no_arrays", "true"); // FORCES immediate-style pointers
+
+        // --- MOUSE & TOUCH FIXES ---
+        System.setProperty("pojav.mouse.relative", "false");      // Use absolute coordinates (standard touch)
+        System.setProperty("pojav.mouse.touchScale", "1.0");     // Ensure 1:1 movement
+        System.setProperty("pojav.mouse.touchAsPointer", "true"); // Treat touch like a hardware mouse
+        System.setProperty("cacio.managed.screensize", "1132x744"); // Use half-native for better touch targets
 
 
 // AWT/UI Stability
