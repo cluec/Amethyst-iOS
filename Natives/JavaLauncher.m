@@ -51,6 +51,14 @@ void init_loadDefaultEnv() {
 
     // Runs JVM in a separate thread
     setenv("HACK_IGNORE_START_ON_FIRST_THREAD", "1", 1);
+
+     // --- GL4ES SPEED BOOSTS ---
+    setenv("LIBGL_BATCH", "1", 1);      // Combines 100s of tiny draw calls into 1 (MASSIVE FPS BOOST)
+    setenv("LIBGL_USEVBO", "1", 1);     // Moves 3D data to GPU memory instead of CPU
+    setenv("LIBGL_FBO", "1", 1);        // Better frame buffer handling
+    setenv("LIBGL_NOERROR", "1", 1);    // Skip error checking to save CPU cycles
+    setenv("LIBGL_NOTEXRECT", "1", 1);  // Use standard textures (faster)
+    setenv("LIBGL_ALPHA", "1", 1);      // Fixes some transparency issues
 }
 
 void init_loadCustomEnv() {
@@ -244,6 +252,17 @@ int launchJVM(NSString *username, id launchTarget, int width, int height, int mi
     margv[++margc] = "--add-opens=java.base/sun.nio.ch=ALL-UNNAMED";
     margv[++margc] = "--enable-native-access=ALL-UNNAMED";
     margv[++margc] = "-Dpojav.internal.skipSetIcon=true"; // Native backup
+
+    // try performance increase
+    margv[++margc] = "-Dlibgl.none=true";            // Use optimized internal paths
+    margv[++margc] = "-Dlibgl.batch=1";              // BATCH draw calls (HUGE FPS BOOST)
+    margv[++margc] = "-Dlibgl.usevbo=1";             // Use Vertex Buffer Objects
+    margv[++margc] = "-Dlibgl.fbo=1";                // Force Framebuffer Objects
+    margv[++margc] = "-Dlibgl.notexrect=1";          // Skip expensive texture rectangle checks
+    
+    // try performance increase
+    margv[++margc] = "-Dcom.threerings.opengl.force_low_spec=true"; // Force the game into low-spec mode
+    margv[++margc] = "-Dcom.threerings.opengl.no_shaders=true";     // Skip the broken shaders you saw in the log
     
     // Add this here too as a backup
     margv[++margc] = "-Dorg.lwjgl.opengl.disableStaticInit=true";

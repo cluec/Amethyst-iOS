@@ -58,7 +58,8 @@ public class PojavLauncher {
 
     public static void launchMinecraft(String[] args) throws Throwable {
         String gameDir = System.getProperty("user.dir");
-
+        System.setProperty("glfw.windowSize", "960x640");
+        System.setProperty("cacio.managed.screensize", "960x640");
         // 1. Mandatary Graphics Bridge Fix
         String sizeStr = System.getProperty("cacio.managed.screensize");
         if (sizeStr == null) sizeStr = "1024x768";
@@ -77,6 +78,12 @@ public class PojavLauncher {
         System.setProperty("org.lwjgl.util.NoChecks", "true");
         System.setProperty("sun.java2d.d3d", "false"); 
         System.setProperty("jinput.useDefaultPlugin", "false");
+
+        System.setProperty("com.threerings.projectx.no_vertex_shaders", "true");
+        System.setProperty("com.threerings.projectx.no_fragment_shaders", "true");
+        System.setProperty("sun.java2d.opengl", "true"); // Ensure Java uses the OGL pipeline
+        System.setProperty("com.threerings.opengl.no_shaders", "true");
+        System.setProperty("com.threerings.projectx.low_spec", "true");
         
         // 4. THE CRITICAL FIXES FOR THE LOG ERRORS YOU SENT:
         // This stops the ArrayIndexOutOfBounds in Display.setIcon
