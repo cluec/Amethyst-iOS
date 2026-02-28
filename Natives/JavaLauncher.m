@@ -32,12 +32,32 @@ BOOL validateVirtualMemorySpace(size_t size) {
 }
 
 void init_loadDefaultEnv() {
-    setenv("LIBGL_ES", "2", 1);
-    setenv("LIBGL_GLSL", "120", 1);
-    setenv("LIBGL_FPE", "1", 1);         // Fixes "Terrible Graphics"
-    setenv("LIBGL_BATCH", "0", 1);       // Stops the Haven move crash
-    setenv("LIBGL_USEVBO", "1", 1);
-    setenv("LIBGL_VERSION", "2.1", 1);
+    /* Define default env */
+
+    // Silent Caciocavallo NPE error in locating Android-only lib
+    setenv("LD_LIBRARY_PATH", "", 1);
+
+    // Ignore mipmap for performance(?) seems does not affect iOS
+    //setenv("LIBGL_MIPMAP", "3", 1);
+
+    // Disable overloaded functions hack for Minecraft 1.17+
+    setenv("LIBGL_NOINTOVLHACK", "1", 1);
+
+    // Fix white color on banner and sheep, since GL4ES 1.1.5
+    setenv("LIBGL_NORMALIZE", "1", 1);
+
+    // Override OpenGL version to 4.1 for Zink
+    setenv("MESA_GL_VERSION_OVERRIDE", "4.1", 1);
+
+    // Runs JVM in a separate thread
+    setenv("HACK_IGNORE_START_ON_FIRST_THREAD", "1", 1);
+
+     // --- GL4ES SPEED BOOSTS ---
+    setenv("LIBGL_USEVBO", "1", 1);     // Moves 3D data to GPU memory instead of CPU
+    setenv("LIBGL_FBO", "1", 1);        // Better frame buffer handling
+    setenv("LIBGL_NOERROR", "1", 1);    // Skip error checking to save CPU cycles
+    setenv("LIBGL_NOTEXRECT", "1", 1);  // Use standard textures (faster)
+    setenv("LIBGL_ALPHA", "1", 1);      // Fixes some transparency issues
 }
 
 void init_loadCustomEnv() {
@@ -88,7 +108,7 @@ void init_loadCustomJvmFlags(int* argc, const char** argv) {
 
 int launchJVM(NSString *username, id launchTarget, int width, int height, int minVersion) {
     NSLog(@"[JavaLauncher] Beginning JVM launch");
-     // PASS RESOLUTION TO JAVA PROPERTIES
+
     BOOL requiresTXMWorkaround = DeviceRequiresTXMWorkaround();
     BOOL jit26AlwaysAttached = getPrefBool(@"debug.debug_always_attached_jit");
     if (requiresTXMWorkaround) {
@@ -223,17 +243,6 @@ int launchJVM(NSString *username, id launchTarget, int width, int height, int mi
     margv[++margc] = "-Dorg.lwjgl.system.allocator=system";
     //margv[++margc] = "-Dorg.lwjgl.util.NoChecks=true";
     margv[++margc] = "-Dlog4j2.formatMsgNoLookups=true";
-    // Pass the slider resolution to Java
-    NSString *sizeStr = [NSString stringWithFormat:@"%dx%d", width, height];
-    setenv("CACIOCAVALLO_SCREEN_SIZE", sizeStr.UTF8String, 1);
-    margv[++margc] = [[NSString stringWithFormat:@"-Dcacio.managed.screensize=%@", sizeStr] UTF8String];
-    
-    // Stability Envs
-    setenv("LIBGL_ES", "2", 1);
-    setenv("LIBGL_GLSL", "120", 1);
-    setenv("LIBGL_FPE", "1", 1);
-    setenv("LIBGL_BATCH", "0", 1);
-    setenv("LIBGL_VERSION", "2.1", 1);
     // Add these alongside the other margv lines
     // Add these alongside the other margv[++margc] lines
     margv[++margc] = "--add-opens=java.base/java.lang=ALL-UNNAMED";
@@ -377,7 +386,7 @@ int launchJVM(NSString *username, id launchTarget, int width, int height, int mi
     if (launchJar) {
         margv[++margc] = "-jar";
     } else {
-        margv[++margc] = (username ? username.UTF8String : "Knight");
+        margv[++margc] = username.UTF8String;
     }
 
     if ([launchTarget isKindOfClass:NSDictionary.class]) {

@@ -1,47 +1,74 @@
 package net.kdt.pojavlaunch;
 
-import java.io.File;
-import java.lang.reflect.Field;
-import java.lang.reflect.Method;
-import java.util.Arrays;
 import java.beans.Beans;
-import net.kdt.pojavlaunch.uikit.UIKit;
+import java.io.*;
+import java.lang.reflect.Field;
+import java.util.*;
+import java.util.concurrent.*;
+
+import org.lwjgl.glfw.CallbackBridge;
+import org.lwjgl.glfw.GLFW;
+
+import net.kdt.pojavlaunch.uikit.*;
+import net.kdt.pojavlaunch.utils.*;
+import net.kdt.pojavlaunch.value.*;
 
 public class PojavLauncher {
+    private static float currProgress, maxProgress;
+
     public static void main(String[] args) throws Throwable {
-        System.out.println("SK-Engine: Initializing...");
+        // Skip calling to com.apple.eawt.Application.nativeInitializeApplicationDelegate()
         Beans.setDesignTime(true);
-
-        // 1. SAFE RESOLUTION LOADING
-        // This order ensures we never hit that split() NullPointerException
-        String sizeStr = System.getProperty("cacio.managed.screensize");
-        if (sizeStr == null) sizeStr = System.getenv("CACIOCAVALLO_SCREEN_SIZE");
-        if (sizeStr == null) sizeStr = "1132x744"; // iPad mini 6 fallback
-
-        System.setProperty("cacio.managed.screensize", sizeStr);
-        System.setProperty("glfw.windowSize", sizeStr);
-        System.setProperty("UIScreen.maximumFramesPerSecond", "60");
-
-        // 2. PREFERENCE FIX (chmod error bypass)
-        System.setProperty("java.util.prefs.userRoot", System.getProperty("user.dir"));
-        System.setProperty("java.util.prefs.PreferencesFactory", "java.util.prefs.FileSystemPreferencesFactory");
-
         try {
-            // UI Bridge Identity
-            System.setProperty("cacio.toolkit.package", "com.github.caciocavallosilano.cacio.ctc");
-            Class.forName("com.github.caciocavallosilano.cacio.ctc.CTCPreloadClassLoader");
+            // Some places use macOS-specific code, which is unavailable on iOS
+            // In this case, try to get it to use Linux-specific code instead.
+            com.apple.eawt.Application.getApplication();
+            Class clazz = Class.forName("com.apple.eawt.Application");
+            Field field = clazz.getDeclaredField("sApplication");
+            field.setAccessible(true);
+            field.set(null, null);
+            sun.font.FontUtilities.isLinux = true;
+            System.setProperty("java.util.prefs.PreferencesFactory", "java.util.prefs.FileSystemPreferencesFactory");
         } catch (Throwable th) {
-            System.out.println("Bridge Warning: " + th.getMessage());
+            // Not on JRE8, ignore exception
+            //Tools.showError(th);
         }
 
-        launchMinecraft(args);
+        Thread.currentThread().setUncaughtExceptionHandler(new Thread.UncaughtExceptionHandler() {
+
+            public void uncaughtException(Thread t, Throwable th) {
+                th.printStackTrace();
+                System.exit(1);
+            }
+        });
+
+        try {
+            // Try to initialize Caciocavallo17
+            Class.forName("com.github.caciocavallosilano.cacio.ctc.CTCPreloadClassLoader");
+        } catch (ClassNotFoundException e) {}
+
+        // Safety check: If no args are provided (like when we skip login), 
+        // just go straight to Spiral Knights.
+        if (args != null && args.length > 0 && args[0].equals("-jar")) {
+            UIKit.callback_JavaGUIViewController_launchJarFile(args[1], Arrays.copyOfRange(args, 2, args.length));
+        } else {
+            launchMinecraft(args);
+        }
     }
 
     public static void launchMinecraft(String[] args) throws Throwable {
         String gameDir = System.getProperty("user.dir");
+        
+        // 1. Mandatary Graphics Bridge Fix
+        String sizeStr = System.getProperty("cacio.managed.screensize");
+        if (sizeStr == null) sizeStr = "1024x768";
+        System.setProperty("glfw.windowSize", sizeStr);
+        System.setProperty("UIScreen.maximumFramesPerSecond", "60");
 
-        // Set properties exactly from your PC command line
+        // 2. Keep Mac OS X Identity (Required for Java 21 library loading)
         System.setProperty("os.name", "Mac OS X");
+        
+        // 3. Spiral Knights Logic
         System.setProperty("appdir", gameDir);
         System.setProperty("resource_dir", gameDir + "/rsrc");
         System.setProperty("crucible.dir", gameDir + "/crucible");
@@ -50,16 +77,28 @@ public class PojavLauncher {
         System.setProperty("org.lwjgl.util.NoChecks", "true");
         System.setProperty("sun.java2d.d3d", "false"); 
         System.setProperty("jinput.useDefaultPlugin", "false");
-        
-        // Final Mobile Fixes
-        System.setProperty("pojav.internal.skipSetIcon", "true");
+
+        System.setProperty("com.threerings.projectx.no_vertex_shaders", "true");
+        System.setProperty("com.threerings.projectx.no_fragment_shaders", "true");
+        System.setProperty("sun.java2d.opengl", "true"); // Ensure Java uses the OGL pipeline
         System.setProperty("com.threerings.opengl.no_shaders", "true");
+        System.setProperty("com.threerings.projectx.low_spec", "true");
+        
+        // 4. THE CRITICAL FIXES FOR THE LOG ERRORS YOU SENT:
+        // This stops the ArrayIndexOutOfBounds in Display.setIcon
+        System.setProperty("pojav.internal.skipSetIcon", "true");
+        
+        // This tells the Mouse system to use the package found in libs_caciocavallo
+        System.setProperty("cacio.toolkit.package", "net.java.openjdk.cacio.ctc");
+        // ---------------------------------------------
+        
         System.setProperty("org.lwjgl.opengl.disableStaticInit", "true");
         System.setProperty("org.lwjgl.vulkan.libname", "libMoltenVK.dylib");
 
         String skMainClass = "com.threerings.projectx.client.ProjectXApp";
-        System.out.println("Launching SK via Tools...");
-        
-        Tools.launchSpiral(skMainClass, new String[0]);
+        String[] skArgs = new String[0]; 
+
+        System.out.println("Starting Spiral Knights (Bridge Redirection Active)...");
+        Tools.launchSpiral(skMainClass, skArgs);
     }
 }

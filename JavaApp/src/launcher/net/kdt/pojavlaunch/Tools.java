@@ -484,22 +484,28 @@ createLibraryInfo(libItem);
         write(path, content.getBytes());
     }
     public static void launchSpiral(String mainClass, String[] args) throws Throwable {
-        String[] internalFolders = {"/libs_caciocavallo17", "/libs", "/libs_caciocavallo"};
         PojavClassLoader loader = (PojavClassLoader) ClassLoader.getSystemClassLoader();
-        String bundlePath = System.getenv("BUNDLE_PATH");
         
-        //Force bridge into memory FIRST
-        //String[] internalFolders = {"/libs", "/libs_caciocavallo17", "/libs_caciocavallo"};
+        // 1. Force-load ALL internal launcher libraries
+        // We include both cacio and cacio17 so Java 21 has the "Dictionary" for old SK commands
+        String bundlePath = System.getenv("BUNDLE_PATH");
+        String[] internalFolders = {"/libs", "/libs_caciocavallo", "/libs_caciocavallo17"};
+        
         for (String folderName : internalFolders) {
             File folder = new File(bundlePath + folderName);
-            if (folder.exists()) {
-                for (File file : folder.listFiles()) {
-                    if (file.getName().endsWith(".jar")) loader.addURL(file.toURI().toURL());
+            if (folder.exists() && folder.isDirectory()) {
+                File[] libFiles = folder.listFiles();
+                if (libFiles != null) {
+                    for (File file : libFiles) {
+                        if (file.getName().endsWith(".jar")) {
+                            loader.addURL(file.toURI().toURL());
+                        }
+                    }
                 }
             }
         }
 
-        //Load Game Jars
+        // 2. Load Game Jars
         File gameDir = new File(System.getProperty("user.dir"));
         File codeDir = new File(gameDir, "code");
         if (codeDir.exists()) {
