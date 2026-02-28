@@ -89,12 +89,6 @@ void init_loadCustomJvmFlags(int* argc, const char** argv) {
 int launchJVM(NSString *username, id launchTarget, int width, int height, int minVersion) {
     NSLog(@"[JavaLauncher] Beginning JVM launch");
      // PASS RESOLUTION TO JAVA PROPERTIES
-    NSString *sizeStr = [NSString stringWithFormat:@"%dx%d", width, height];
-    setenv("CACIOCAVALLO_SCREEN_SIZE", sizeStr.UTF8String, 1);
-    
-    // Also pass it as a standard Java property for safety
-    // This is the line that will fix your most recent error
-    margv[++margc] = [[NSString stringWithFormat:@"-Dcacio.managed.screensize=%@", sizeStr] UTF8String];
     BOOL requiresTXMWorkaround = DeviceRequiresTXMWorkaround();
     BOOL jit26AlwaysAttached = getPrefBool(@"debug.debug_always_attached_jit");
     if (requiresTXMWorkaround) {
@@ -239,6 +233,7 @@ int launchJVM(NSString *username, id launchTarget, int width, int height, int mi
     setenv("LIBGL_GLSL", "120", 1);
     setenv("LIBGL_FPE", "1", 1);
     setenv("LIBGL_BATCH", "0", 1);
+    setenv("LIBGL_VERSION", "2.1", 1);
     // Add these alongside the other margv lines
     // Add these alongside the other margv[++margc] lines
     margv[++margc] = "--add-opens=java.base/java.lang=ALL-UNNAMED";
@@ -382,7 +377,7 @@ int launchJVM(NSString *username, id launchTarget, int width, int height, int mi
     if (launchJar) {
         margv[++margc] = "-jar";
     } else {
-        margv[++margc] = username.UTF8String;
+        margv[++margc] = (username ? username.UTF8String : "Knight");
     }
 
     if ([launchTarget isKindOfClass:NSDictionary.class]) {
