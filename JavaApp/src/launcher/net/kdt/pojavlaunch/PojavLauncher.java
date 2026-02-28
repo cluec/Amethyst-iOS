@@ -58,47 +58,41 @@ public class PojavLauncher {
 
     public static void launchMinecraft(String[] args) throws Throwable {
         String gameDir = System.getProperty("user.dir");
-        
-        // 1. Mandatary Graphics Bridge Fix
+
+        // 1. Mandatory Bridge Properties
         String sizeStr = System.getProperty("cacio.managed.screensize");
-        if (sizeStr == null) sizeStr = "1024x768";
+        if (sizeStr == null) sizeStr = "1132x744"; 
         System.setProperty("glfw.windowSize", sizeStr);
         System.setProperty("UIScreen.maximumFramesPerSecond", "60");
 
-        // 2. Keep Mac OS X Identity (Required for Java 21 library loading)
+        // 2. DISABLE BROKEN GRAPHICS (FPS Boost)
+        // These force the game to run in its most basic, fastest mode
+        System.setProperty("com.threerings.opengl.no_shaders", "true");
+        System.setProperty("com.threerings.projectx.no_vertex_shaders", "true");
+        System.setProperty("com.threerings.projectx.no_fragment_shaders", "true");
+        System.setProperty("com.threerings.projectx.low_spec", "true");
+        System.setProperty("sun.java2d.opengl", "true");
+
+        // 3. CRASH FIXES
         System.setProperty("os.name", "Mac OS X");
+        System.setProperty("pojav.internal.skipSetIcon", "true");
+        System.setProperty("lwjgl.util.NoChecks", "true");
         
-        // 3. Spiral Knights Logic
+        // Tells Java 21 to find Mouse classes where SK expects them
+        System.setProperty("cacio.toolkit.package", "net.java.openjdk.cacio.ctc");
+
+        // 4. Spiral Knights System Properties
         System.setProperty("appdir", gameDir);
         System.setProperty("resource_dir", gameDir + "/rsrc");
         System.setProperty("crucible.dir", gameDir + "/crucible");
         System.setProperty("com.threerings.getdown", "true");
         System.setProperty("no_update", "true");
-        System.setProperty("org.lwjgl.util.NoChecks", "true");
-        System.setProperty("sun.java2d.d3d", "false"); 
         System.setProperty("jinput.useDefaultPlugin", "false");
-
-        System.setProperty("com.threerings.projectx.no_vertex_shaders", "true");
-        System.setProperty("com.threerings.projectx.no_fragment_shaders", "true");
-        System.setProperty("sun.java2d.opengl", "true"); // Ensure Java uses the OGL pipeline
-        System.setProperty("com.threerings.opengl.no_shaders", "true");
-        System.setProperty("com.threerings.projectx.low_spec", "true");
-        
-        // 4. THE CRITICAL FIXES FOR THE LOG ERRORS YOU SENT:
-        // This stops the ArrayIndexOutOfBounds in Display.setIcon
-        System.setProperty("pojav.internal.skipSetIcon", "true");
-        
-        // This tells the Mouse system to use the package found in libs_caciocavallo
-        System.setProperty("cacio.toolkit.package", "net.java.openjdk.cacio.ctc");
-        // ---------------------------------------------
-        
         System.setProperty("org.lwjgl.opengl.disableStaticInit", "true");
         System.setProperty("org.lwjgl.vulkan.libname", "libMoltenVK.dylib");
 
         String skMainClass = "com.threerings.projectx.client.ProjectXApp";
-        String[] skArgs = new String[0]; 
-
-        System.out.println("Starting Spiral Knights (Bridge Redirection Active)...");
-        Tools.launchSpiral(skMainClass, skArgs);
+        System.out.println("Launching Spiral Knights with A15 Optimizations...");
+        Tools.launchSpiral(skMainClass, new String[0]);
     }
 }
