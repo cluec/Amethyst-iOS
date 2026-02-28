@@ -1,41 +1,28 @@
 package net.kdt.pojavlaunch;
 
-import java.beans.Beans;
-import java.io.*;
+import java.io.File;
 import java.lang.reflect.Field;
-import java.util.*;
-import java.util.concurrent.*;
-
-import org.lwjgl.glfw.CallbackBridge;
-import org.lwjgl.glfw.GLFW;
-
-import net.kdt.pojavlaunch.uikit.*;
-import net.kdt.pojavlaunch.utils.*;
-import net.kdt.pojavlaunch.value.*;
+import java.lang.reflect.Method;
+import java.util.Arrays;
+import java.beans.Beans;
+import net.kdt.pojavlaunch.uikit.UIKit;
 
 public class PojavLauncher {
-    private static float currProgress, maxProgress;
 
     public static void main(String[] args) throws Throwable {
-        // Skip calling to com.apple.eawt.Application.nativeInitializeApplicationDelegate()
+        // 1. RESTORE ORIGINAL UI BEHAVIOR (Fixes broken side menu & controls)
         Beans.setDesignTime(true);
         try {
-            // Some places use macOS-specific code, which is unavailable on iOS
-            // In this case, try to get it to use Linux-specific code instead.
             com.apple.eawt.Application.getApplication();
             Class clazz = Class.forName("com.apple.eawt.Application");
             Field field = clazz.getDeclaredField("sApplication");
             field.setAccessible(true);
             field.set(null, null);
             sun.font.FontUtilities.isLinux = true;
-            System.setProperty("java.util.prefs.PreferencesFactory", "java.util.prefs.FileSystemPreferencesFactory");
-        } catch (Throwable th) {
-            // Not on JRE8, ignore exception
-            //Tools.showError(th);
-        }
+            // WE REMOVED the broken "PreferencesFactory" line here to fix the chmod crash!
+        } catch (Throwable th) { }
 
         Thread.currentThread().setUncaughtExceptionHandler(new Thread.UncaughtExceptionHandler() {
-
             public void uncaughtException(Thread t, Throwable th) {
                 th.printStackTrace();
                 System.exit(1);
@@ -43,43 +30,30 @@ public class PojavLauncher {
         });
 
         try {
-            // Try to initialize Caciocavallo17
             Class.forName("com.github.caciocavallosilano.cacio.ctc.CTCPreloadClassLoader");
         } catch (ClassNotFoundException e) {}
 
-        // Safety check: If no args are provided (like when we skip login), 
-        // just go straight to Spiral Knights.
-        if (args != null && args.length > 0 && args[0].equals("-jar")) {
-            UIKit.callback_JavaGUIViewController_launchJarFile(args[1], Arrays.copyOfRange(args, 2, args.length));
-        } else {
-            launchMinecraft(args);
-        }
+        launchMinecraft(args);
     }
 
     public static void launchMinecraft(String[] args) throws Throwable {
         String gameDir = System.getProperty("user.dir");
 
-        // 1. Mandatory Bridge Properties
-        String sizeStr = System.getenv("CACIOCAVALLO_SCREEN_SIZE");
-        if (sizeStr == null) sizeStr = "1132x744"; 
-        System.setProperty("cacio.managed.screensize", sizeStr);
+        // 2. iOS Bridge Properties
+        String sizeStr = System.getProperty("cacio.managed.screensize");
+        if (sizeStr == null) sizeStr = "1024x768";
         System.setProperty("glfw.windowSize", sizeStr);
         System.setProperty("UIScreen.maximumFramesPerSecond", "60");
 
-        // 2. HARD DISABLE ALL SHADERS AND EFFECTS
+        // 3. HARD DISABLE ALL SHADERS (Fixes graphics & performance)
         System.setProperty("com.threerings.opengl.no_shaders", "true");
         System.setProperty("com.threerings.projectx.no_vertex_shaders", "true");
         System.setProperty("com.threerings.projectx.no_fragment_shaders", "true");
         System.setProperty("com.threerings.projectx.low_spec", "true");
         System.setProperty("com.threerings.opengl.force_low_spec", "true");
         
-        // 3. Fix Input Lag (Force software cursor)
-        System.setProperty("org.lwjgl.opengl.Window.undecorated", "true");
-        System.setProperty("pojav.internal.skipSetIcon", "true");
-
         // 4. Identity & Paths
         System.setProperty("os.name", "Mac OS X");
-        System.setProperty("cacio.toolkit.package", "com.github.caciocavallosilano.cacio.ctc");
         System.setProperty("appdir", gameDir);
         System.setProperty("resource_dir", gameDir + "/rsrc");
         System.setProperty("crucible.dir", gameDir + "/crucible");
@@ -87,11 +61,12 @@ public class PojavLauncher {
         System.setProperty("no_update", "true");
         System.setProperty("jinput.useDefaultPlugin", "false");
         
+        System.setProperty("pojav.internal.skipSetIcon", "true");
         System.setProperty("org.lwjgl.opengl.disableStaticInit", "true");
         System.setProperty("org.lwjgl.vulkan.libname", "libMoltenVK.dylib");
 
         String skMainClass = "com.threerings.projectx.client.ProjectXApp";
-        System.out.println("Launching Spiral Knights in Ultimate Compatibility Mode...");
+        System.out.println("Launching Spiral Knights...");
         Tools.launchSpiral(skMainClass, new String[0]);
     }
 }
