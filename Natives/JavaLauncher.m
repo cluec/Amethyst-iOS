@@ -32,24 +32,12 @@ BOOL validateVirtualMemorySpace(size_t size) {
 }
 
 void init_loadDefaultEnv() {
-    //Disable Batching (This STOPS the memmove crash)
-    setenv("LIBGL_BATCH", "0", 1); 
-    //setenv("CACIOCAVALLO_SCREEN_SIZE", "1132x744", 1);
-    setenv("POJAV_GAME_DIR", getenv("POJAV_HOME"), 1);
-    
-   //Compatibility Envs
-    setenv("LIBGL_ES", "2", 1);         // Use GLES 2.0
-    setenv("LIBGL_GLSL", "120", 1);     // Use old shader language
-    setenv("LIBGL_FPE", "1", 1); // Enables Fixed Function Emulation
-    setenv("LIBGL_USEVBO", "1", 1);     // GPU Buffers ON
-    setenv("LIBGL_NOERROR", "1", 1);    // Ignore errors for speed
-    setenv("LIBGL_NOTEXRECT", "1", 1);  // Standard textures only
-    
-    //Fix the "Varying Color" mismatch and "Null Version"
-    setenv("LIBGL_VARYING_FIX", "1", 1);
+    setenv("LIBGL_ES", "2", 1);
+    setenv("LIBGL_GLSL", "120", 1);
+    setenv("LIBGL_FPE", "1", 1);         // Fixes "Terrible Graphics"
+    setenv("LIBGL_BATCH", "0", 1);       // Stops the Haven move crash
+    setenv("LIBGL_USEVBO", "1", 1);
     setenv("LIBGL_VERSION", "2.1", 1);
-
-    
 }
 
 void init_loadCustomEnv() {
@@ -100,9 +88,13 @@ void init_loadCustomJvmFlags(int* argc, const char** argv) {
 
 int launchJVM(NSString *username, id launchTarget, int width, int height, int minVersion) {
     NSLog(@"[JavaLauncher] Beginning JVM launch");
+     // PASS RESOLUTION TO JAVA PROPERTIES
     NSString *sizeStr = [NSString stringWithFormat:@"%dx%d", width, height];
     setenv("CACIOCAVALLO_SCREEN_SIZE", sizeStr.UTF8String, 1);
-    setenv("CACIOCAVALLO_MANAGED_SCREENSIZE", sizeStr.UTF8String, 1);
+    
+    // Also pass it as a standard Java property for safety
+    // This is the line that will fix your most recent error
+    margv[++margc] = [[NSString stringWithFormat:@"-Dcacio.managed.screensize=%@", sizeStr] UTF8String];
     BOOL requiresTXMWorkaround = DeviceRequiresTXMWorkaround();
     BOOL jit26AlwaysAttached = getPrefBool(@"debug.debug_always_attached_jit");
     if (requiresTXMWorkaround) {
