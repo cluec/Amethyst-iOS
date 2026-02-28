@@ -32,23 +32,33 @@ BOOL validateVirtualMemorySpace(size_t size) {
 }
 
 void init_loadDefaultEnv() {
-    // 1. Force strict OpenGL 1.5 mode (Bypasses modern shader translation)
-    setenv("CACIOCAVALLO_SCREEN_SIZE", "1133x744", 1);
+    /* Define default env */
+
+    // Silent Caciocavallo NPE error in locating Android-only lib
+    setenv("LD_LIBRARY_PATH", "", 1);
+
+    // Ignore mipmap for performance(?) seems does not affect iOS
+    //setenv("LIBGL_MIPMAP", "3", 1);
+
+    // Disable overloaded functions hack for Minecraft 1.17+
+    setenv("LIBGL_NOINTOVLHACK", "1", 1);
+
+    // Fix white color on banner and sheep, since GL4ES 1.1.5
+    setenv("LIBGL_NORMALIZE", "1", 1);
+
+    // Override OpenGL version to 4.1 for Zink
+    //setenv("MESA_GL_VERSION_OVERRIDE", "4.1", 1);
     setenv("LIBGL_VERSION", "1.5", 1);
-    
-    // 2. Disable shader conversion completely (Relies on Fixed Function)
-    setenv("LIBGL_NOSHADERS", "1", 1);
-    
-    // 3. Keep performance and stability hacks
-    setenv("LIBGL_ES", "2", 1);
-    setenv("LIBGL_GLSL", "120", 1);
-    setenv("LIBGL_FPE", "1", 1);
-    setenv("LIBGL_BATCH", "0", 1); // Keep at 0 to prevent crashes
-    setenv("LIBGL_USEVBO", "1", 1);
-    setenv("LIBGL_NOERROR", "1", 1);
-    
-    // 4. Force software fallbacks for broken textures (Fixes invisible models)
-    setenv("LIBGL_TEXMAT", "1", 1);
+
+    // Runs JVM in a separate thread
+    setenv("HACK_IGNORE_START_ON_FIRST_THREAD", "1", 1);
+
+     // --- GL4ES SPEED BOOSTS ---
+    setenv("LIBGL_USEVBO", "1", 1);     // Moves 3D data to GPU memory instead of CPU
+    setenv("LIBGL_FBO", "1", 1);        // Better frame buffer handling
+    setenv("LIBGL_NOERROR", "1", 1);    // Skip error checking to save CPU cycles
+    setenv("LIBGL_NOTEXRECT", "1", 1);  // Use standard textures (faster)
+    setenv("LIBGL_ALPHA", "1", 1);      // Fixes some transparency issues
 }
 
 void init_loadCustomEnv() {
@@ -234,7 +244,6 @@ int launchJVM(NSString *username, id launchTarget, int width, int height, int mi
     margv[++margc] = "-Dorg.lwjgl.system.allocator=system";
     //margv[++margc] = "-Dorg.lwjgl.util.NoChecks=true";
     margv[++margc] = "-Dlog4j2.formatMsgNoLookups=true";
-    margv[++margc] = "-Dcacio.managed.screensize=1133x744";
     // Add these alongside the other margv lines
     // Add these alongside the other margv[++margc] lines
     margv[++margc] = "--add-opens=java.base/java.lang=ALL-UNNAMED";

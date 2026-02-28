@@ -483,15 +483,17 @@ createLibraryInfo(libItem);
     public static void write(String path, String content) throws IOException {
         write(path, content.getBytes());
     }
-   public static void launchSpiral(String mainClass, String[] args) throws Throwable {
+    public static void launchSpiral(String mainClass, String[] args) throws Throwable {
         PojavClassLoader loader = (PojavClassLoader) ClassLoader.getSystemClassLoader();
-        String bundlePath = System.getenv("BUNDLE_PATH");
         
-        // 1. FIX THE MOUSE CRASH: Load all internal launcher bridges FIRST
-        String[] internalFolders = {"/libs_caciocavallo", "/libs_caciocavallo17", "/libs"};
+        // 1. Force-load ALL internal launcher libraries
+        // We include both cacio and cacio17 so Java 21 has the "Dictionary" for old SK commands
+        String bundlePath = System.getenv("BUNDLE_PATH");
+        String[] internalFolders = {"/libs", "/libs_caciocavallo", "/libs_caciocavallo17"};
+        
         for (String folderName : internalFolders) {
             File folder = new File(bundlePath + folderName);
-            if (folder.exists()) {
+            if (folder.exists() && folder.isDirectory()) {
                 File[] libFiles = folder.listFiles();
                 if (libFiles != null) {
                     for (File file : libFiles) {
@@ -503,27 +505,23 @@ createLibraryInfo(libItem);
             }
         }
 
-        // 2. Load the SK Game Jars from the 'code' folder
+        // 2. Load Game Jars
         File gameDir = new File(System.getProperty("user.dir"));
         File codeDir = new File(gameDir, "code");
         if (codeDir.exists()) {
-            File[] gameFiles = codeDir.listFiles();
-            if (gameFiles != null) {
-                for (File file : gameFiles) {
-                    if (file.getName().endsWith(".jar")) {
-                        String name = file.getName().toLowerCase();
-                        // Skip Windows jars to prevent native link errors
-                        if (name.contains("getdown") || name.contains("lwjgl") || 
-                            name.contains("jinput") || name.contains("jutils") || 
-                            name.contains("jshortcut")) continue;
-                        loader.addURL(file.toURI().toURL());
-                    }
+            for (File file : codeDir.listFiles()) {
+                if (file.getName().endsWith(".jar")) {
+                    String name = file.getName().toLowerCase();
+                    // Skip the Windows specific jars from your screenshot
+                    if (name.contains("getdown") || name.contains("lwjgl") || 
+                        name.contains("jinput") || name.contains("jutils") || 
+                        name.contains("jshortcut")) continue;
+                    loader.addURL(file.toURI().toURL());
                 }
             }
         }
 
-        // 3. Start the game with Throwable catch to see any Haven errors
-        System.out.println("ProjectXApp: Invoking Main...");
+        System.out.println("Invoking ProjectXApp on Java 21...");
         try {
             Class<?> clazz = loader.loadClass(mainClass);
             Method method = clazz.getMethod("main", String[].class);
