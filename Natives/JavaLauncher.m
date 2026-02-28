@@ -34,6 +34,8 @@ BOOL validateVirtualMemorySpace(size_t size) {
 void init_loadDefaultEnv() {
     //Disable Batching (This STOPS the memmove crash)
     setenv("LIBGL_BATCH", "0", 1); 
+    //setenv("CACIOCAVALLO_SCREEN_SIZE", "1132x744", 1);
+    setenv("POJAV_GAME_DIR", getenv("POJAV_HOME"), 1);
     
    //Compatibility Envs
     setenv("LIBGL_ES", "2", 1);         // Use GLES 2.0
@@ -98,7 +100,9 @@ void init_loadCustomJvmFlags(int* argc, const char** argv) {
 
 int launchJVM(NSString *username, id launchTarget, int width, int height, int minVersion) {
     NSLog(@"[JavaLauncher] Beginning JVM launch");
-
+    NSString *sizeStr = [NSString stringWithFormat:@"%dx%d", width, height];
+    setenv("CACIOCAVALLO_SCREEN_SIZE", sizeStr.UTF8String, 1);
+    setenv("CACIOCAVALLO_MANAGED_SCREENSIZE", sizeStr.UTF8String, 1);
     BOOL requiresTXMWorkaround = DeviceRequiresTXMWorkaround();
     BOOL jit26AlwaysAttached = getPrefBool(@"debug.debug_always_attached_jit");
     if (requiresTXMWorkaround) {
