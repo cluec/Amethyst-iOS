@@ -484,11 +484,12 @@ createLibraryInfo(libItem);
         write(path, content.getBytes());
     }
     public static void launchSpiral(String mainClass, String[] args) throws Throwable {
+        String[] internalFolders = {"/libs_caciocavallo17", "/libs", "/libs_caciocavallo"};
         PojavClassLoader loader = (PojavClassLoader) ClassLoader.getSystemClassLoader();
         String bundlePath = System.getenv("BUNDLE_PATH");
         
         //Force bridge into memory FIRST
-        String[] internalFolders = {"/libs", "/libs_caciocavallo17", "/libs_caciocavallo"};
+        //String[] internalFolders = {"/libs", "/libs_caciocavallo17", "/libs_caciocavallo"};
         for (String folderName : internalFolders) {
             File folder = new File(bundlePath + folderName);
             if (folder.exists()) {

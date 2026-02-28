@@ -38,6 +38,7 @@ void init_loadDefaultEnv() {
    //Compatibility Envs
     setenv("LIBGL_ES", "2", 1);         // Use GLES 2.0
     setenv("LIBGL_GLSL", "120", 1);     // Use old shader language
+    setenv("LIBGL_FPE", "1", 1); // Enables Fixed Function Emulation
     setenv("LIBGL_USEVBO", "1", 1);     // GPU Buffers ON
     setenv("LIBGL_NOERROR", "1", 1);    // Ignore errors for speed
     setenv("LIBGL_NOTEXRECT", "1", 1);  // Standard textures only
@@ -45,6 +46,8 @@ void init_loadDefaultEnv() {
     //Fix the "Varying Color" mismatch and "Null Version"
     setenv("LIBGL_VARYING_FIX", "1", 1);
     setenv("LIBGL_VERSION", "2.1", 1);
+
+    
 }
 
 void init_loadCustomEnv() {
