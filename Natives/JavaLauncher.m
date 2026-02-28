@@ -33,6 +33,7 @@ BOOL validateVirtualMemorySpace(size_t size) {
 
 void init_loadDefaultEnv() {
     // 1. Force strict OpenGL 1.5 mode (Bypasses modern shader translation)
+    setenv("CACIOCAVALLO_SCREEN_SIZE", "1133x744", 1);
     setenv("LIBGL_VERSION", "1.5", 1);
     
     // 2. Disable shader conversion completely (Relies on Fixed Function)
@@ -233,7 +234,7 @@ int launchJVM(NSString *username, id launchTarget, int width, int height, int mi
     margv[++margc] = "-Dorg.lwjgl.system.allocator=system";
     //margv[++margc] = "-Dorg.lwjgl.util.NoChecks=true";
     margv[++margc] = "-Dlog4j2.formatMsgNoLookups=true";
-    margv[++margc] = [[NSString stringWithFormat:@"-Dcacio.managed.screensize=%dx%d", width, height] UTF8String];
+    margv[++margc] = "-Dcacio.managed.screensize=1133x744";
     // Add these alongside the other margv lines
     // Add these alongside the other margv[++margc] lines
     margv[++margc] = "--add-opens=java.base/java.lang=ALL-UNNAMED";

@@ -10,10 +10,9 @@ import net.kdt.pojavlaunch.uikit.UIKit;
 public class PojavLauncher {
     public static void main(String[] args) throws Throwable {
         // --- THE UI FIX: SET THIS FIRST ---
-        String size = System.getProperty("cacio.managed.screensize");
-        if (size == null) size = "1132x744"; // Fallback for iPad mini 6
-        System.setProperty("cacio.managed.screensize", size);
-        System.setProperty("glfw.windowSize", size);
+        System.setProperty("cacio.managed.screensize", "1133x744");
+        System.setProperty("glfw.windowSize", "1133x744");
+        Beans.setDesignTime(true);
         // ----------------------------------
 
         Beans.setDesignTime(true);
