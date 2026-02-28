@@ -32,21 +32,22 @@ BOOL validateVirtualMemorySpace(size_t size) {
 }
 
 void init_loadDefaultEnv() {
-    // 1. Core Speed & Graphics Fixes
-    setenv("LIBGL_FPE", "1", 1);         // Fixes "Incorrect Graphics" (Emulator)
-    setenv("LIBGL_ES", "2", 1);          // Use GLES 2.0 (Stable for A15)
-    setenv("LIBGL_GLSL", "120", 1);      // Use older shader language
-    setenv("LIBGL_USEVBO", "1", 1);      // Use GPU for geometry (Fast)
-    setenv("LIBGL_BATCH", "0", 1);       // 0 = Stable, 1 = Faster (Try 0 first)
-
-    // 2. Identification
-    setenv("LIBGL_VERSION", "2.1", 1);
-    setenv("LIBGL_NOERROR", "1", 1);     // Skip error checks for speed
+    // 1. Force strict OpenGL 1.5 mode (Bypasses modern shader translation)
+    setenv("LIBGL_VERSION", "1.5", 1);
     
-    // 3. Launcher defaults
-    setenv("LD_LIBRARY_PATH", "", 1);
-    setenv("LIBGL_NOINTOVLHACK", "1", 1);
-    setenv("HACK_IGNORE_START_ON_FIRST_THREAD", "1", 1);
+    // 2. Disable shader conversion completely (Relies on Fixed Function)
+    setenv("LIBGL_NOSHADERS", "1", 1);
+    
+    // 3. Keep performance and stability hacks
+    setenv("LIBGL_ES", "2", 1);
+    setenv("LIBGL_GLSL", "120", 1);
+    setenv("LIBGL_FPE", "1", 1);
+    setenv("LIBGL_BATCH", "0", 1); // Keep at 0 to prevent crashes
+    setenv("LIBGL_USEVBO", "1", 1);
+    setenv("LIBGL_NOERROR", "1", 1);
+    
+    // 4. Force software fallbacks for broken textures (Fixes invisible models)
+    setenv("LIBGL_TEXMAT", "1", 1);
 }
 
 void init_loadCustomEnv() {

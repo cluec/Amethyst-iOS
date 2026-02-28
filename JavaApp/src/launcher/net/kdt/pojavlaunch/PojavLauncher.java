@@ -60,39 +60,38 @@ public class PojavLauncher {
         String gameDir = System.getProperty("user.dir");
 
         // 1. Mandatory Bridge Properties
-        String sizeStr = System.getProperty("cacio.managed.screensize");
+        String sizeStr = System.getenv("CACIOCAVALLO_SCREEN_SIZE");
         if (sizeStr == null) sizeStr = "1132x744"; 
+        System.setProperty("cacio.managed.screensize", sizeStr);
         System.setProperty("glfw.windowSize", sizeStr);
         System.setProperty("UIScreen.maximumFramesPerSecond", "60");
 
-        // 2. DISABLE BROKEN GRAPHICS (FPS Boost)
-        // These force the game to run in its most basic, fastest mode
+        // 2. HARD DISABLE ALL SHADERS AND EFFECTS
         System.setProperty("com.threerings.opengl.no_shaders", "true");
         System.setProperty("com.threerings.projectx.no_vertex_shaders", "true");
         System.setProperty("com.threerings.projectx.no_fragment_shaders", "true");
         System.setProperty("com.threerings.projectx.low_spec", "true");
-        System.setProperty("sun.java2d.opengl", "true");
-
-        // 3. CRASH FIXES
-        System.setProperty("os.name", "Mac OS X");
-        System.setProperty("pojav.internal.skipSetIcon", "true");
-        System.setProperty("lwjgl.util.NoChecks", "true");
+        System.setProperty("com.threerings.opengl.force_low_spec", "true");
         
-        // Tells Java 21 to find Mouse classes where SK expects them
-        System.setProperty("cacio.toolkit.package", "net.java.openjdk.cacio.ctc");
+        // 3. Fix Input Lag (Force software cursor)
+        System.setProperty("org.lwjgl.opengl.Window.undecorated", "true");
+        System.setProperty("pojav.internal.skipSetIcon", "true");
 
-        // 4. Spiral Knights System Properties
+        // 4. Identity & Paths
+        System.setProperty("os.name", "Mac OS X");
+        System.setProperty("cacio.toolkit.package", "com.github.caciocavallosilano.cacio.ctc");
         System.setProperty("appdir", gameDir);
         System.setProperty("resource_dir", gameDir + "/rsrc");
         System.setProperty("crucible.dir", gameDir + "/crucible");
         System.setProperty("com.threerings.getdown", "true");
         System.setProperty("no_update", "true");
         System.setProperty("jinput.useDefaultPlugin", "false");
+        
         System.setProperty("org.lwjgl.opengl.disableStaticInit", "true");
         System.setProperty("org.lwjgl.vulkan.libname", "libMoltenVK.dylib");
 
         String skMainClass = "com.threerings.projectx.client.ProjectXApp";
-        System.out.println("Launching Spiral Knights with A15 Optimizations...");
+        System.out.println("Launching Spiral Knights in Ultimate Compatibility Mode...");
         Tools.launchSpiral(skMainClass, new String[0]);
     }
 }
