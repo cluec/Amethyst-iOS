@@ -34,28 +34,28 @@ BOOL validateVirtualMemorySpace(size_t size) {
 void init_loadDefaultEnv() {
     setenv("LD_LIBRARY_PATH", "", 1);
     
-    // --- STOP THE "SPAWN" CRASH ---
-    setenv("LIBGL_VBO", "0", 1);            // Disable auto-VBO (it's what crashed when Slags spawned)
-    setenv("LIBGL_STREAM_VBO", "1", 1);     // Use Streaming instead (stable for mob spawning)
-    setenv("LIBGL_FORCE_COPY", "1", 1);     // Required to sanitize memory
-    setenv("LIBGL_ALIGNEDARRAY", "1", 1);   // Required for ARM64 stability
+    // --- STOP THE SEGFAULT (memmove crash) ---
+    setenv("LIBGL_VBO", "0", 1);            // Disable all VBOs (they cause the memmove crash)
+    setenv("LIBGL_FORCE_COPY", "1", 1);     // GL4ES creates safe memory buffers
+    setenv("LIBGL_ALIGNEDARRAY", "1", 1);   // CRITICAL for iPad mini 6 (ARM64 alignment)
+    setenv("LIBGL_SAFE_DRAW", "1", 1);      // Adds extra checks to prevent out-of-bounds crashes
     
-    // --- FIX LIGHTING & TEXTURE ERRORS ---
-    setenv("LIBGL_DEFAULT_FPE", "1", 1);
-    setenv("LIBGL_VERSION", "1.5", 1);      // Match "Compatibility Mode" exactly
-    setenv("LIBGL_TEX_N_COORD", "4", 1);    // 4 layers for Glow/Base/Mask/Light
-    setenv("LIBGL_TEXGEN", "1", 1);         // Fixes lighting reflections on armor
-    setenv("LIBGL_COLOR_ALPHA", "1", 1);    // Improves transparency blending (Glows)
+    // --- TEXT & UI CLARITY ---
+    setenv("LIBGL_SHRINK", "0", 1);         // Fixes unreadable text (0 = High Quality)
+    setenv("LIBGL_NOTEXRECT", "1", 1);      // Proper UI alignment
+    setenv("LIBGL_MIPMAP", "3", 1);         // Better quality for scaled text
     
-    // --- TEXT CLARITY ---
-    setenv("LIBGL_SHRINK", "0", 1);         // Sharp text (0 = No shrinking)
-    setenv("LIBGL_MIPMAP", "3", 1);         // Smoother downscaling for UI
+    // --- LIGHTING FIXES ---
+    setenv("LIBGL_DEFAULT_FPE", "1", 1);    // Enable Fixed Function Emulation (Fixed lighting)
+    setenv("LIBGL_VERSION", "1.5", 1);      // Match Compatibility Mode exactly
+    setenv("LIBGL_TEXGEN", "1", 1);         // Enable specular/shine on armor
+    setenv("LIBGL_TEX_N_COORD", "4", 1);    // Enable Glow/Light/Mask layers
+    setenv("LIBGL_COLOR_ALPHA", "1", 1);    // Smooth blending for glows
     
     // --- PERFORMANCE ---
-    setenv("LIBGL_NOERROR", "1", 1);
-    setenv("LIBGL_NOTEXRECT", "1", 1);
+    setenv("LIBGL_NOERROR", "1", 1);        // Speed up execution
     setenv("LIBGL_ALPHA", "1", 1);
-
+    
     setenv("HACK_IGNORE_START_ON_FIRST_THREAD", "1", 1);
 }
 void init_loadCustomEnv() {
@@ -252,7 +252,7 @@ int launchJVM(NSString *username, id launchTarget, int width, int height, int mi
 
     // Better Garbage Collection for limited memory
     // Change SerialGC to G1GC (Better for multi-core CPUs like the A15 in iPad mini 6)
-    //margv[++margc] = "-XX:+UseSerialGC"; 
+    margv[++margc] = "-XX:+UseSerialGC"; 
     //margv[++margc] = "-XX:MaxGCPauseMillis=20"; // Try to keep pauses under 20ms
     margv[++margc] = "-XX:InitiatingHeapOccupancyPercent=35";
     //margv[++margc] = "-Xmx1024M"; 

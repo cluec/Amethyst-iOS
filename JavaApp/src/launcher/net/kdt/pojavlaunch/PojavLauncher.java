@@ -87,6 +87,7 @@ public class PojavLauncher {
         System.setProperty("com.threerings.opengl.num_layers", "4"); // Reduce overdraw
         //System.setProperty("com.threerings.projectx.low_spec", "true");
         System.setProperty("org.lwjgl.opengl.Display.noResizable", "true");
+        System.setProperty("com.threerings.opengl.no_arrays", "true"); 
 
         System.setProperty("com.threerings.opengl.no_vbos", "true"); // STOP the game from managing buffers
         System.setProperty("com.threerings.opengl.no_pbos", "true"); // Prevent pixel buffer crashes
