@@ -34,24 +34,27 @@ BOOL validateVirtualMemorySpace(size_t size) {
 void init_loadDefaultEnv() {
     setenv("LD_LIBRARY_PATH", "", 1);
     
-    // --- STABILITY FIXES (REQUIRED TO STOP THE CRASH) ---
-    setenv("LIBGL_BATCH", "0", 1);      // Disable batching - it's causing the SIGSEGV
-    setenv("LIBGL_USEVBO", "0", 1);    // Disable forced VBOs - the game engine prefers raw pointers
-    setenv("LIBGL_VBO", "0", 1);
-    
-    // --- RENDERING COMPATIBILITY ---
-    setenv("LIBGL_DEFAULT_FPE", "1", 1); // Keep this - it fixes the "undeclared identifier" bugs
-    setenv("LIBGL_GLSL_VERSION", "100", 1); 
+    // --- SHADER FIXES (Fixes the 'gl_MultiTexCoord0' errors) ---
+    setenv("LIBGL_DEFAULT_FPE", "1", 1);
     setenv("LIBGL_REMAP_VARYING", "1", 1);
-    setenv("LIBGL_VERSION", "1.5", 1);
+    setenv("LIBGL_GLSL_VERSION", "120", 1); // Switch to 1.20 for better MultiTex support
+    setenv("LIBGL_TEX_N_COORD", "2", 1);    // Force at least 2 texture coordinate sets
     
-    // --- BUG FIXES ---
+    // --- CRASH PREVENTIONS (Vertex Data Alignment) ---
+    setenv("LIBGL_ALIGNEDARRAY", "1", 1);   // FORCES alignment - prevents the segfault in CopyNativeVertexData
+    setenv("LIBGL_SHRINK", "1", 1);         // Reduces memory usage for vertex arrays
+    setenv("LIBGL_BATCH", "0", 1);          // Keep batching OFF for now
+    setenv("LIBGL_USEVBO", "0", 1);         // Keep VBOs OFF for now
+    
+    // --- BACKEND COMPATIBILITY ---
+    setenv("LIBGL_VERSION", "1.5", 1);
     setenv("LIBGL_NOINTOVLHACK", "1", 1);
     setenv("LIBGL_NORMALIZE", "1", 1);
     setenv("LIBGL_ALPHA", "1", 1);
     setenv("LIBGL_FBO", "1", 1);
     setenv("LIBGL_NOTEXRECT", "1", 1);
-    
+    setenv("LIBGL_NOERROR", "1", 1);
+
     setenv("HACK_IGNORE_START_ON_FIRST_THREAD", "1", 1);
 }
 

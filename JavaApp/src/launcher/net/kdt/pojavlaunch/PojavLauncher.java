@@ -88,6 +88,15 @@ public class PojavLauncher {
         System.setProperty("com.threerings.projectx.low_spec", "true");
         System.setProperty("org.lwjgl.opengl.Display.noResizable", "true");
 
+        System.setProperty("com.threerings.opengl.no_vbos", "true"); // STOP the game from managing buffers
+        System.setProperty("com.threerings.opengl.no_pbos", "true"); // Prevent pixel buffer crashes
+        
+    // Performance/Stability Tweaks
+    System.setProperty("com.threerings.opengl.force_low_spec", "true");
+    System.setProperty("com.threerings.projectx.low_spec", "true");
+    System.setProperty("sun.java2d.opengl", "false"); 
+    System.setProperty("org.lwjgl.opengl.Display.noResizable", "true");
+
         // Important: Java2D can conflict with GL4ES if not handled.
         System.setProperty("sun.java2d.opengl", "false");
         System.setProperty("sun.java2d.noddraw", "true");
