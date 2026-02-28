@@ -34,27 +34,24 @@ BOOL validateVirtualMemorySpace(size_t size) {
 void init_loadDefaultEnv() {
     setenv("LD_LIBRARY_PATH", "", 1);
     
-    // --- THE CRASH FIX (Critical) ---
-    setenv("LIBGL_FORCE_COPY", "1", 1);    // GL4ES will manage the memory copies, not ANGLE
-    setenv("LIBGL_ALIGNEDARRAY", "1", 1);  // Force 16-byte alignment for ARM64
-    setenv("LIBGL_SHRINK", "1", 1);        // Lower memory pressure during copies
+    // --- THE FIX FOR rx::CopyNativeVertexData ---
+    setenv("LIBGL_VBO", "3", 1);           // FORCE GL4ES to manage all buffers (Mode 3 is most aggressive)
+    setenv("LIBGL_WRAP_INDEX", "1", 1);    // Helps with the glDrawRangeElements crash
+    setenv("LIBGL_FORCE_COPY", "1", 1);    // Keep this on to sanitize memory
     
-    // --- SHADER FIXES (Fixes the 'gl_MultiTexCoord0' and Link errors) ---
-    setenv("LIBGL_DEFAULT_FPE", "1", 1);   // Enable Fixed Function Emulation
-    setenv("LIBGL_TEX_N_COORD", "4", 1);   // Increase coordinate sets to 4 (SK uses many layers)
-    setenv("LIBGL_REMAP_VARYING", "1", 1); 
+    // --- SHADER FIXES (Fixes 'gl_MultiTexCoord0' errors) ---
+    setenv("LIBGL_DEFAULT_FPE", "1", 1);
+    setenv("LIBGL_TEX_N_COORD", "4", 1);   // Export 4 texture slots (Required for Knights)
+    setenv("LIBGL_TEXGEN", "1", 1);        // Support older texture coordinate generation
+    setenv("LIBGL_REMAP_VARYING", "1", 1);
     setenv("LIBGL_GLSL_VERSION", "120", 1);
     
-    // --- STABILITY & COMPATIBILITY ---
-    setenv("LIBGL_VERSION", "1.5", 1);     // SK is 1.5. Fake nothing higher.
-    setenv("LIBGL_FBO", "1", 1);
-    setenv("LIBGL_ALPHA", "1", 1);
+    // --- STABILITY ---
+    setenv("LIBGL_ALIGNEDARRAY", "1", 1);
+    setenv("LIBGL_VERSION", "1.5", 1);
     setenv("LIBGL_NOERROR", "1", 1);
     setenv("LIBGL_NOTEXRECT", "1", 1);
-    
-    // --- PERFORMANCE (Safe Variants) ---
-    setenv("LIBGL_BATCH", "0", 1);         // Batching + Force Copy usually = Crash
-    setenv("LIBGL_USEVBO", "0", 1);        // SK prefers immediate mode via Force Copy
+    setenv("LIBGL_SHRINK", "1", 1);        // Lower texture resolution to save RAM
     
     setenv("HACK_IGNORE_START_ON_FIRST_THREAD", "1", 1);
 }
@@ -258,6 +255,11 @@ int launchJVM(NSString *username, id launchTarget, int width, int height, int mi
     margv[++margc] = "-XX:InitiatingHeapOccupancyPercent=35";
     //margv[++margc] = "-Xmx1024M"; 
     margv[++margc] = "-XX:MaxGCPauseMillis=50"; 
+    margv[++margc] = "-Xmx768M"; 
+    margv[++margc] = "-Xms128M";
+
+    // Add this to help with the "Undeclared Identifier" errors in your logs
+    margv[++margc] = "-Dlibgl.fpe=1";
 
     // Since iPad mini 6 has 4GB RAM, you can safely bump allocation to 1200-1500MB 
     // if you have the "Increased Memory Limit" entitlement.
