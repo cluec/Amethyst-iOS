@@ -233,6 +233,7 @@ int launchJVM(NSString *username, id launchTarget, int width, int height, int mi
     margv[++margc] = "-Dorg.lwjgl.system.allocator=system";
     //margv[++margc] = "-Dorg.lwjgl.util.NoChecks=true";
     margv[++margc] = "-Dlog4j2.formatMsgNoLookups=true";
+    margv[++margc] = [[NSString stringWithFormat:@"-Dcacio.managed.screensize=%dx%d", width, height] UTF8String];
     // Add these alongside the other margv lines
     // Add these alongside the other margv[++margc] lines
     margv[++margc] = "--add-opens=java.base/java.lang=ALL-UNNAMED";

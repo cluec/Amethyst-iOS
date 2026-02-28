@@ -9,7 +9,13 @@ import net.kdt.pojavlaunch.uikit.UIKit;
 
 public class PojavLauncher {
     public static void main(String[] args) throws Throwable {
-        // RESTORE: This specific logic makes your side menu and touch work
+        // --- THE UI FIX: SET THIS FIRST ---
+        String size = System.getProperty("cacio.managed.screensize");
+        if (size == null) size = "1132x744"; // Fallback for iPad mini 6
+        System.setProperty("cacio.managed.screensize", size);
+        System.setProperty("glfw.windowSize", size);
+        // ----------------------------------
+
         Beans.setDesignTime(true);
         try {
             com.apple.eawt.Application.getApplication();
@@ -17,19 +23,21 @@ public class PojavLauncher {
             Field field = clazz.getDeclaredField("sApplication");
             field.setAccessible(true);
             field.set(null, null);
-            // This is the line that fixed your UI before
             sun.font.FontUtilities.isLinux = true;
         } catch (Throwable th) { }
 
-        // FIX: This property stops the 'chmod' crash on iOS 16
         System.setProperty("java.util.prefs.userRoot", System.getProperty("user.dir"));
 
-        Thread.currentThread().setUncaughtExceptionHandler((t, th) -> {
-            th.printStackTrace();
-            System.exit(1);
+        Thread.currentThread().setUncaughtExceptionHandler(new Thread.UncaughtExceptionHandler() {
+            public void uncaughtException(Thread t, Throwable th) {
+                th.printStackTrace();
+                System.exit(1);
+            }
         });
 
         try {
+            // This line was crashing because properties weren't set yet. 
+            // It will work now!
             Class.forName("com.github.caciocavallosilano.cacio.ctc.CTCPreloadClassLoader");
         } catch (ClassNotFoundException e) {}
 
