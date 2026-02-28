@@ -58,8 +58,7 @@ public class PojavLauncher {
 
     public static void launchMinecraft(String[] args) throws Throwable {
         String gameDir = System.getProperty("user.dir");
-        System.setProperty("glfw.windowSize", "960x640");
-        System.setProperty("cacio.managed.screensize", "960x640");
+        
         // 1. Mandatary Graphics Bridge Fix
         String sizeStr = System.getProperty("cacio.managed.screensize");
         if (sizeStr == null) sizeStr = "1024x768";

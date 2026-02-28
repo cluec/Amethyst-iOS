@@ -53,7 +53,6 @@ void init_loadDefaultEnv() {
     setenv("HACK_IGNORE_START_ON_FIRST_THREAD", "1", 1);
 
      // --- GL4ES SPEED BOOSTS ---
-    setenv("LIBGL_BATCH", "1", 1);      // Combines 100s of tiny draw calls into 1 (MASSIVE FPS BOOST)
     setenv("LIBGL_USEVBO", "1", 1);     // Moves 3D data to GPU memory instead of CPU
     setenv("LIBGL_FBO", "1", 1);        // Better frame buffer handling
     setenv("LIBGL_NOERROR", "1", 1);    // Skip error checking to save CPU cycles
