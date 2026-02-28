@@ -83,8 +83,8 @@ public class PojavLauncher {
         System.setProperty("sun.java2d.opengl", "true"); // Ensure Java uses the OGL pipeline
         System.setProperty("com.threerings.opengl.no_shaders", "true");
         System.setProperty("com.threerings.projectx.low_spec", "true");
-        System.setProperty("com.threerings.opengl.force_low_spec", "true"); 
-        System.setProperty("com.threerings.opengl.num_layers", "1"); // Reduce overdraw
+        System.setProperty("com.threerings.opengl.force_low_spec", "false"); 
+        System.setProperty("com.threerings.opengl.num_layers", "4"); // Reduce overdraw
         //System.setProperty("com.threerings.projectx.low_spec", "true");
         System.setProperty("org.lwjgl.opengl.Display.noResizable", "true");
 

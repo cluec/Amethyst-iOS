@@ -34,28 +34,29 @@ BOOL validateVirtualMemorySpace(size_t size) {
 void init_loadDefaultEnv() {
     setenv("LD_LIBRARY_PATH", "", 1);
     
-    // --- THE FIX FOR rx::CopyNativeVertexData ---
-    setenv("LIBGL_VBO", "3", 1);           // FORCE GL4ES to manage all buffers (Mode 3 is most aggressive)
-    setenv("LIBGL_WRAP_INDEX", "1", 1);    // Helps with the glDrawRangeElements crash
-    setenv("LIBGL_FORCE_COPY", "1", 1);    // Keep this on to sanitize memory
+    // --- TEXT CLARITY FIX ---
+    setenv("LIBGL_SHRINK", "0", 1);        // Disable shrinking to make text sharp again
+    setenv("LIBGL_MIPMAP", "2", 1);        // Enable clean texture downscaling for UI elements
     
-    // --- SHADER FIXES (Fixes 'gl_MultiTexCoord0' errors) ---
-    setenv("LIBGL_DEFAULT_FPE", "1", 1);
-    setenv("LIBGL_TEX_N_COORD", "4", 1);   // Export 4 texture slots (Required for Knights)
-    setenv("LIBGL_TEXGEN", "1", 1);        // Support older texture coordinate generation
-    setenv("LIBGL_REMAP_VARYING", "1", 1);
-    setenv("LIBGL_GLSL_VERSION", "120", 1);
+    // --- LIGHTING IMPROVEMENTS ---
+    setenv("LIBGL_DEFAULT_FPE", "1", 1);   // Keep this!
+    setenv("LIBGL_VERSION", "2.1", 1);     // Upgrade to 2.1 - provides better lighting math than 1.5
+    setenv("LIBGL_TEXGEN", "1", 1);        // Handle character and armor reflections
+    setenv("LIBGL_TEX_N_COORD", "4", 1);   // Keep at 4 for multi-layer textures (lighting/glow)
     
-    // --- STABILITY ---
+    // --- KEEP STABILITY (To prevent the previous crashes) ---
+    setenv("LIBGL_VBO", "3", 1);           
+    setenv("LIBGL_WRAP_INDEX", "1", 1);    
+    setenv("LIBGL_FORCE_COPY", "1", 1);    
     setenv("LIBGL_ALIGNEDARRAY", "1", 1);
-    setenv("LIBGL_VERSION", "1.5", 1);
+    
+    // --- PERFORMANCE & UI STABILITY ---
     setenv("LIBGL_NOERROR", "1", 1);
-    setenv("LIBGL_NOTEXRECT", "1", 1);
-    setenv("LIBGL_SHRINK", "1", 1);        // Lower texture resolution to save RAM
+    setenv("LIBGL_NOTEXRECT", "1", 1);     // Helps UI alignment on iOS
+    setenv("LIBGL_ALPHA", "1", 1);         // Essential for glows and transparent lighting
     
     setenv("HACK_IGNORE_START_ON_FIRST_THREAD", "1", 1);
 }
-
 void init_loadCustomEnv() {
     NSString *envvars = getPrefObject(@"java.env_variables");
     if (envvars == nil) return;
@@ -228,7 +229,7 @@ int launchJVM(NSString *username, id launchTarget, int width, int height, int mi
     if (!launchJar) {
         margv[++margc] = "-Djava.system.class.loader=net.kdt.pojavlaunch.PojavClassLoader";
     }
-    margv[++margc] = "-Xms128M";
+    //margv[++margc] = "-Xms128M";
     margv[++margc] = [NSString stringWithFormat:@"-Xmx%dM", allocmem].UTF8String;
     margv[++margc] = [NSString stringWithFormat:@"-Djava.library.path=%@/Frameworks", NSBundle.mainBundle.bundlePath].UTF8String;
     margv[++margc] = [NSString stringWithFormat:@"-Duser.dir=%@", gameDir].UTF8String;
@@ -255,8 +256,8 @@ int launchJVM(NSString *username, id launchTarget, int width, int height, int mi
     margv[++margc] = "-XX:InitiatingHeapOccupancyPercent=35";
     //margv[++margc] = "-Xmx1024M"; 
     margv[++margc] = "-XX:MaxGCPauseMillis=50"; 
-    margv[++margc] = "-Xmx768M"; 
-    margv[++margc] = "-Xms128M";
+    //margv[++margc] = "-Xmx768M"; 
+    //margv[++margc] = "-Xms128M";
 
     // Add this to help with the "Undeclared Identifier" errors in your logs
     margv[++margc] = "-Dlibgl.fpe=1";
