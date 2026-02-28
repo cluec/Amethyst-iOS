@@ -243,6 +243,7 @@ int launchJVM(NSString *username, id launchTarget, int width, int height, int mi
     margv[++margc] = "--add-opens=java.base/java.nio=ALL-UNNAMED";
     margv[++margc] = "--add-opens=java.base/sun.nio.ch=ALL-UNNAMED";
     margv[++margc] = "--enable-native-access=ALL-UNNAMED";
+    margv[++margc] = "-Dpojav.internal.skipSetIcon=true"; // Native backup
     
     // Add this here too as a backup
     margv[++margc] = "-Dorg.lwjgl.opengl.disableStaticInit=true";

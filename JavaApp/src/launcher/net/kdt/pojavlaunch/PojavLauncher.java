@@ -59,18 +59,16 @@ public class PojavLauncher {
     public static void launchMinecraft(String[] args) throws Throwable {
         String gameDir = System.getProperty("user.dir");
 
-        // 1. Mandatory Graphics Bridge Fixes
+        // 1. Mandatary Graphics Bridge Fix
         String sizeStr = System.getProperty("cacio.managed.screensize");
         if (sizeStr == null) sizeStr = "1024x768";
         System.setProperty("glfw.windowSize", sizeStr);
-        
-        // Fix for the NullPointerException at line 521 in your previous log
         System.setProperty("UIScreen.maximumFramesPerSecond", "60");
 
-        // 2. Identity Fix: Back to Mac OS X (Required for native library loading)
+        // 2. Keep Mac OS X Identity (Required for Java 21 library loading)
         System.setProperty("os.name", "Mac OS X");
         
-        // 3. Spiral Knights Specific Logic
+        // 3. Spiral Knights Logic
         System.setProperty("appdir", gameDir);
         System.setProperty("resource_dir", gameDir + "/rsrc");
         System.setProperty("crucible.dir", gameDir + "/crucible");
@@ -80,11 +78,13 @@ public class PojavLauncher {
         System.setProperty("sun.java2d.d3d", "false"); 
         System.setProperty("jinput.useDefaultPlugin", "false");
         
-        // 4. CRASH FIX: Skip the 'setIcon' code that caused the ArrayIndexOutOfBoundsException
+        // 4. THE CRITICAL FIXES FOR THE LOG ERRORS YOU SENT:
+        // This stops the ArrayIndexOutOfBounds in Display.setIcon
         System.setProperty("pojav.internal.skipSetIcon", "true");
         
-        // 5. JAVA 21 FIX: Map the old Mouse class name to the new Caciocavallo 17 name
-        System.setProperty("cacio.toolkit.package", "com.github.caciocavallosilano.cacio.ctc");
+        // This tells the Mouse system to use the package found in libs_caciocavallo
+        System.setProperty("cacio.toolkit.package", "net.java.openjdk.cacio.ctc");
+        // ---------------------------------------------
         
         System.setProperty("org.lwjgl.opengl.disableStaticInit", "true");
         System.setProperty("org.lwjgl.vulkan.libname", "libMoltenVK.dylib");
@@ -92,7 +92,7 @@ public class PojavLauncher {
         String skMainClass = "com.threerings.projectx.client.ProjectXApp";
         String[] skArgs = new String[0]; 
 
-        System.out.println("Launching Spiral Knights (Final Compatibility Mode)...");
+        System.out.println("Starting Spiral Knights (Bridge Redirection Active)...");
         Tools.launchSpiral(skMainClass, skArgs);
     }
 }

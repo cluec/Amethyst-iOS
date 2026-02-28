@@ -486,29 +486,33 @@ createLibraryInfo(libItem);
     public static void launchSpiral(String mainClass, String[] args) throws Throwable {
         PojavClassLoader loader = (PojavClassLoader) ClassLoader.getSystemClassLoader();
         
-        // 1. Force-load ALL internal launcher libraries (Bridge, UI, Caciocavallo)
+        // 1. Force-load ALL internal launcher libraries
+        // We include both cacio and cacio17 so Java 21 has the "Dictionary" for old SK commands
         String bundlePath = System.getenv("BUNDLE_PATH");
-        // We scan all 3 folders to ensure the MouseReader classes are found
-        String[] internalFolders = {"/libs", "/libs_caciocavallo17", "/libs_caciocavallo"};
+        String[] internalFolders = {"/libs", "/libs_caciocavallo", "/libs_caciocavallo17"};
         
         for (String folderName : internalFolders) {
             File folder = new File(bundlePath + folderName);
             if (folder.exists() && folder.isDirectory()) {
-                for (File file : folder.listFiles()) {
-                    if (file.getName().endsWith(".jar")) {
-                        loader.addURL(file.toURI().toURL());
+                File[] libFiles = folder.listFiles();
+                if (libFiles != null) {
+                    for (File file : libFiles) {
+                        if (file.getName().endsWith(".jar")) {
+                            loader.addURL(file.toURI().toURL());
+                        }
                     }
                 }
             }
         }
 
-        // 2. Load Game Jars (Skip Windows versions)
+        // 2. Load Game Jars
         File gameDir = new File(System.getProperty("user.dir"));
         File codeDir = new File(gameDir, "code");
-        if (codeDir.exists() && codeDir.isDirectory()) {
+        if (codeDir.exists()) {
             for (File file : codeDir.listFiles()) {
                 if (file.getName().endsWith(".jar")) {
                     String name = file.getName().toLowerCase();
+                    // Skip the Windows specific jars from your screenshot
                     if (name.contains("getdown") || name.contains("lwjgl") || 
                         name.contains("jinput") || name.contains("jutils") || 
                         name.contains("jshortcut")) continue;
@@ -517,7 +521,7 @@ createLibraryInfo(libItem);
             }
         }
 
-        System.out.println("Starting Game Thread (Bridge Enabled)...");
+        System.out.println("Invoking ProjectXApp on Java 21...");
         try {
             Class<?> clazz = loader.loadClass(mainClass);
             Method method = clazz.getMethod("main", String[].class);
