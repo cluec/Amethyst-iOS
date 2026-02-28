@@ -487,33 +487,50 @@ createLibraryInfo(libItem);
         PojavClassLoader loader = (PojavClassLoader) ClassLoader.getSystemClassLoader();
         String bundlePath = System.getenv("BUNDLE_PATH");
         
-        // THIS FIXES THE MOUSE CRASH: Load the old libraries first
+        // 1. FIX THE MOUSE CRASH: Load all internal launcher bridges FIRST
         String[] internalFolders = {"/libs_caciocavallo", "/libs_caciocavallo17", "/libs"};
         for (String folderName : internalFolders) {
             File folder = new File(bundlePath + folderName);
             if (folder.exists()) {
-                for (File file : folder.listFiles()) {
-                    if (file.getName().endsWith(".jar")) loader.addURL(file.toURI().toURL());
+                File[] libFiles = folder.listFiles();
+                if (libFiles != null) {
+                    for (File file : libFiles) {
+                        if (file.getName().endsWith(".jar")) {
+                            loader.addURL(file.toURI().toURL());
+                        }
+                    }
                 }
             }
         }
 
-        // Load Game Jars
+        // 2. Load the SK Game Jars from the 'code' folder
         File gameDir = new File(System.getProperty("user.dir"));
         File codeDir = new File(gameDir, "code");
         if (codeDir.exists()) {
-            for (File file : codeDir.listFiles()) {
-                if (file.getName().endsWith(".jar")) {
-                    String name = file.getName().toLowerCase();
-                    if (name.contains("getdown") || name.contains("lwjgl") || 
-                        name.contains("jinput") || name.contains("jutils") || 
-                        name.contains("jshortcut")) continue;
-                    loader.addURL(file.toURI().toURL());
+            File[] gameFiles = codeDir.listFiles();
+            if (gameFiles != null) {
+                for (File file : gameFiles) {
+                    if (file.getName().endsWith(".jar")) {
+                        String name = file.getName().toLowerCase();
+                        // Skip Windows jars to prevent native link errors
+                        if (name.contains("getdown") || name.contains("lwjgl") || 
+                            name.contains("jinput") || name.contains("jutils") || 
+                            name.contains("jshortcut")) continue;
+                        loader.addURL(file.toURI().toURL());
+                    }
                 }
             }
         }
 
+        // 3. Start the game with Throwable catch to see any Haven errors
+        System.out.println("ProjectXApp: Invoking Main...");
         try {
             Class<?> clazz = loader.loadClass(mainClass);
-            Method method = clazz.getMethod("main", String
+            Method method = clazz.getMethod("main", String[].class);
+            method.invoke(null, (Object)args);
+        } catch (Throwable t) {
+            t.printStackTrace();
+            if (t.getCause() != null) t.getCause().printStackTrace();
+        }
+    }
 }

@@ -8,9 +8,8 @@ import java.beans.Beans;
 import net.kdt.pojavlaunch.uikit.UIKit;
 
 public class PojavLauncher {
-
     public static void main(String[] args) throws Throwable {
-        // 1. RESTORE ORIGINAL UI BEHAVIOR (Fixes broken side menu & controls)
+        // RESTORE: This specific logic makes your side menu and touch work
         Beans.setDesignTime(true);
         try {
             com.apple.eawt.Application.getApplication();
@@ -18,15 +17,16 @@ public class PojavLauncher {
             Field field = clazz.getDeclaredField("sApplication");
             field.setAccessible(true);
             field.set(null, null);
+            // This is the line that fixed your UI before
             sun.font.FontUtilities.isLinux = true;
-            // WE REMOVED the broken "PreferencesFactory" line here to fix the chmod crash!
         } catch (Throwable th) { }
 
-        Thread.currentThread().setUncaughtExceptionHandler(new Thread.UncaughtExceptionHandler() {
-            public void uncaughtException(Thread t, Throwable th) {
-                th.printStackTrace();
-                System.exit(1);
-            }
+        // FIX: This property stops the 'chmod' crash on iOS 16
+        System.setProperty("java.util.prefs.userRoot", System.getProperty("user.dir"));
+
+        Thread.currentThread().setUncaughtExceptionHandler((t, th) -> {
+            th.printStackTrace();
+            System.exit(1);
         });
 
         try {
@@ -39,21 +39,23 @@ public class PojavLauncher {
     public static void launchMinecraft(String[] args) throws Throwable {
         String gameDir = System.getProperty("user.dir");
 
-        // 2. iOS Bridge Properties
+        // UI & Window setup
         String sizeStr = System.getProperty("cacio.managed.screensize");
-        if (sizeStr == null) sizeStr = "1024x768";
+        if (sizeStr == null) sizeStr = "1132x744"; 
         System.setProperty("glfw.windowSize", sizeStr);
         System.setProperty("UIScreen.maximumFramesPerSecond", "60");
 
-        // 3. HARD DISABLE ALL SHADERS (Fixes graphics & performance)
-        System.setProperty("com.threerings.opengl.no_shaders", "true");
-        System.setProperty("com.threerings.projectx.no_vertex_shaders", "true");
-        System.setProperty("com.threerings.projectx.no_fragment_shaders", "true");
-        System.setProperty("com.threerings.projectx.low_spec", "true");
-        System.setProperty("com.threerings.opengl.force_low_spec", "true");
-        
-        // 4. Identity & Paths
+        // 1.5 PERFORMANCE MODE: Tell the game we are an old GPU
+        // This forces the game to use simple code that the iPad can run fast.
         System.setProperty("os.name", "Mac OS X");
+        System.setProperty("gl4es.version", "1.5");
+        System.setProperty("com.threerings.opengl.no_shaders", "true");
+        
+        // Crash Fixes
+        System.setProperty("pojav.internal.skipSetIcon", "true");
+        System.setProperty("lwjgl.util.NoChecks", "true");
+
+        // SK Paths
         System.setProperty("appdir", gameDir);
         System.setProperty("resource_dir", gameDir + "/rsrc");
         System.setProperty("crucible.dir", gameDir + "/crucible");
@@ -61,12 +63,9 @@ public class PojavLauncher {
         System.setProperty("no_update", "true");
         System.setProperty("jinput.useDefaultPlugin", "false");
         
-        System.setProperty("pojav.internal.skipSetIcon", "true");
         System.setProperty("org.lwjgl.opengl.disableStaticInit", "true");
         System.setProperty("org.lwjgl.vulkan.libname", "libMoltenVK.dylib");
 
-        String skMainClass = "com.threerings.projectx.client.ProjectXApp";
-        System.out.println("Launching Spiral Knights...");
-        Tools.launchSpiral(skMainClass, new String[0]);
+        Tools.launchSpiral("com.threerings.projectx.client.ProjectXApp", new String[0]);
     }
 }
