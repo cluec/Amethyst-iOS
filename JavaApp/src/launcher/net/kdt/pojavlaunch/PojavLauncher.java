@@ -90,6 +90,14 @@ public class PojavLauncher {
 
         System.setProperty("com.threerings.opengl.no_vbos", "true"); // STOP the game from managing buffers
         System.setProperty("com.threerings.opengl.no_pbos", "true"); // Prevent pixel buffer crashes
+
+      
+        System.setProperty("com.threerings.opengl.no_arrays", "true"); // FORCES immediate-style pointers
+
+
+// AWT/UI Stability
+System.setProperty("sun.java2d.opengl", "false"); 
+System.setProperty("org.lwjgl.opengl.Display.noResizable", "true");
         
     // Performance/Stability Tweaks
     System.setProperty("com.threerings.opengl.force_low_spec", "true");

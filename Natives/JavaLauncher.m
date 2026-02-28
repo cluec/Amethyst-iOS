@@ -34,27 +34,28 @@ BOOL validateVirtualMemorySpace(size_t size) {
 void init_loadDefaultEnv() {
     setenv("LD_LIBRARY_PATH", "", 1);
     
-    // --- SHADER FIXES (Fixes the 'gl_MultiTexCoord0' errors) ---
-    setenv("LIBGL_DEFAULT_FPE", "1", 1);
-    setenv("LIBGL_REMAP_VARYING", "1", 1);
-    setenv("LIBGL_GLSL_VERSION", "120", 1); // Switch to 1.20 for better MultiTex support
-    setenv("LIBGL_TEX_N_COORD", "2", 1);    // Force at least 2 texture coordinate sets
+    // --- THE CRASH FIX (Critical) ---
+    setenv("LIBGL_FORCE_COPY", "1", 1);    // GL4ES will manage the memory copies, not ANGLE
+    setenv("LIBGL_ALIGNEDARRAY", "1", 1);  // Force 16-byte alignment for ARM64
+    setenv("LIBGL_SHRINK", "1", 1);        // Lower memory pressure during copies
     
-    // --- CRASH PREVENTIONS (Vertex Data Alignment) ---
-    setenv("LIBGL_ALIGNEDARRAY", "1", 1);   // FORCES alignment - prevents the segfault in CopyNativeVertexData
-    setenv("LIBGL_SHRINK", "1", 1);         // Reduces memory usage for vertex arrays
-    setenv("LIBGL_BATCH", "0", 1);          // Keep batching OFF for now
-    setenv("LIBGL_USEVBO", "0", 1);         // Keep VBOs OFF for now
+    // --- SHADER FIXES (Fixes the 'gl_MultiTexCoord0' and Link errors) ---
+    setenv("LIBGL_DEFAULT_FPE", "1", 1);   // Enable Fixed Function Emulation
+    setenv("LIBGL_TEX_N_COORD", "4", 1);   // Increase coordinate sets to 4 (SK uses many layers)
+    setenv("LIBGL_REMAP_VARYING", "1", 1); 
+    setenv("LIBGL_GLSL_VERSION", "120", 1);
     
-    // --- BACKEND COMPATIBILITY ---
-    setenv("LIBGL_VERSION", "1.5", 1);
-    setenv("LIBGL_NOINTOVLHACK", "1", 1);
-    setenv("LIBGL_NORMALIZE", "1", 1);
-    setenv("LIBGL_ALPHA", "1", 1);
+    // --- STABILITY & COMPATIBILITY ---
+    setenv("LIBGL_VERSION", "1.5", 1);     // SK is 1.5. Fake nothing higher.
     setenv("LIBGL_FBO", "1", 1);
-    setenv("LIBGL_NOTEXRECT", "1", 1);
+    setenv("LIBGL_ALPHA", "1", 1);
     setenv("LIBGL_NOERROR", "1", 1);
-
+    setenv("LIBGL_NOTEXRECT", "1", 1);
+    
+    // --- PERFORMANCE (Safe Variants) ---
+    setenv("LIBGL_BATCH", "0", 1);         // Batching + Force Copy usually = Crash
+    setenv("LIBGL_USEVBO", "0", 1);        // SK prefers immediate mode via Force Copy
+    
     setenv("HACK_IGNORE_START_ON_FIRST_THREAD", "1", 1);
 }
 
@@ -253,8 +254,10 @@ int launchJVM(NSString *username, id launchTarget, int width, int height, int mi
     // Better Garbage Collection for limited memory
     // Change SerialGC to G1GC (Better for multi-core CPUs like the A15 in iPad mini 6)
     margv[++margc] = "-XX:+UseSerialGC"; 
-    margv[++margc] = "-XX:MaxGCPauseMillis=20"; // Try to keep pauses under 20ms
+    //margv[++margc] = "-XX:MaxGCPauseMillis=20"; // Try to keep pauses under 20ms
     margv[++margc] = "-XX:InitiatingHeapOccupancyPercent=35";
+    //margv[++margc] = "-Xmx1024M"; 
+    margv[++margc] = "-XX:MaxGCPauseMillis=50"; 
 
     // Since iPad mini 6 has 4GB RAM, you can safely bump allocation to 1200-1500MB 
     // if you have the "Increased Memory Limit" entitlement.
