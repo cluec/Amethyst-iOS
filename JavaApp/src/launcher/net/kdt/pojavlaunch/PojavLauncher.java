@@ -9,60 +9,57 @@ import net.kdt.pojavlaunch.uikit.UIKit;
 
 public class PojavLauncher {
     public static void main(String[] args) throws Throwable {
+        System.out.println("SK-Engine: Initializing...");
         Beans.setDesignTime(true);
-        try {
-            // Fix for Java 21 UI initialization
-            com.apple.eawt.Application.getApplication();
-            Class clazz = Class.forName("com.apple.eawt.Application");
-            Field field = clazz.getDeclaredField("sApplication");
-            field.setAccessible(true);
-            field.set(null, null);
 
-            // Redirect preferences to avoid the 'chmod' crash
-            System.setProperty("java.util.prefs.userRoot", System.getProperty("user.dir"));
-            System.setProperty("java.util.prefs.PreferencesFactory", "java.util.prefs.FileSystemPreferencesFactory");
+        // 1. SAFE RESOLUTION LOADING
+        // This order ensures we never hit that split() NullPointerException
+        String sizeStr = System.getProperty("cacio.managed.screensize");
+        if (sizeStr == null) sizeStr = System.getenv("CACIOCAVALLO_SCREEN_SIZE");
+        if (sizeStr == null) sizeStr = "1132x744"; // iPad mini 6 fallback
+
+        System.setProperty("cacio.managed.screensize", sizeStr);
+        System.setProperty("glfw.windowSize", sizeStr);
+        System.setProperty("UIScreen.maximumFramesPerSecond", "60");
+
+        // 2. PREFERENCE FIX (chmod error bypass)
+        System.setProperty("java.util.prefs.userRoot", System.getProperty("user.dir"));
+        System.setProperty("java.util.prefs.PreferencesFactory", "java.util.prefs.FileSystemPreferencesFactory");
+
+        try {
+            // UI Bridge Identity
+            System.setProperty("cacio.toolkit.package", "com.github.caciocavallosilano.cacio.ctc");
+            Class.forName("com.github.caciocavallosilano.cacio.ctc.CTCPreloadClassLoader");
         } catch (Throwable th) {
-            // Ignore UI prep errors
+            System.out.println("Bridge Warning: " + th.getMessage());
         }
 
-        Thread.currentThread().setUncaughtExceptionHandler((t, th) -> {
-            th.printStackTrace();
-            System.exit(1);
-        });
-
-        // Initialize the bridge
-        try {
-            Class.forName("com.github.caciocavallosilano.cacio.ctc.CTCPreloadClassLoader");
-        } catch (ClassNotFoundException e) {}
-
-        // Start Spiral Knights
         launchMinecraft(args);
     }
 
     public static void launchMinecraft(String[] args) throws Throwable {
         String gameDir = System.getProperty("user.dir");
 
-        // Mandatory Graphics Bridge Fix
-        String sizeStr = System.getProperty("cacio.managed.screensize");
-        if (sizeStr == null) sizeStr = "1132x744"; 
-        System.setProperty("glfw.windowSize", sizeStr);
-
-        // Core Properties
+        // Set properties exactly from your PC command line
         System.setProperty("os.name", "Mac OS X");
         System.setProperty("appdir", gameDir);
         System.setProperty("resource_dir", gameDir + "/rsrc");
         System.setProperty("crucible.dir", gameDir + "/crucible");
         System.setProperty("com.threerings.getdown", "true");
         System.setProperty("no_update", "true");
+        System.setProperty("org.lwjgl.util.NoChecks", "true");
+        System.setProperty("sun.java2d.d3d", "false"); 
+        System.setProperty("jinput.useDefaultPlugin", "false");
         
-        // Crash/Graphics Fixes
+        // Final Mobile Fixes
         System.setProperty("pojav.internal.skipSetIcon", "true");
-        System.setProperty("lwjgl.util.NoChecks", "true");
-        System.setProperty("org.lwjgl.opengl.disableStaticInit", "true");
         System.setProperty("com.threerings.opengl.no_shaders", "true");
+        System.setProperty("org.lwjgl.opengl.disableStaticInit", "true");
         System.setProperty("org.lwjgl.vulkan.libname", "libMoltenVK.dylib");
 
         String skMainClass = "com.threerings.projectx.client.ProjectXApp";
+        System.out.println("Launching SK via Tools...");
+        
         Tools.launchSpiral(skMainClass, new String[0]);
     }
 }

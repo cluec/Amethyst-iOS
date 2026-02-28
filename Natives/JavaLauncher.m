@@ -229,6 +229,16 @@ int launchJVM(NSString *username, id launchTarget, int width, int height, int mi
     margv[++margc] = "-Dorg.lwjgl.system.allocator=system";
     //margv[++margc] = "-Dorg.lwjgl.util.NoChecks=true";
     margv[++margc] = "-Dlog4j2.formatMsgNoLookups=true";
+    // Pass the slider resolution to Java
+    NSString *sizeStr = [NSString stringWithFormat:@"%dx%d", width, height];
+    setenv("CACIOCAVALLO_SCREEN_SIZE", sizeStr.UTF8String, 1);
+    margv[++margc] = [[NSString stringWithFormat:@"-Dcacio.managed.screensize=%@", sizeStr] UTF8String];
+    
+    // Stability Envs
+    setenv("LIBGL_ES", "2", 1);
+    setenv("LIBGL_GLSL", "120", 1);
+    setenv("LIBGL_FPE", "1", 1);
+    setenv("LIBGL_BATCH", "0", 1);
     // Add these alongside the other margv lines
     // Add these alongside the other margv[++margc] lines
     margv[++margc] = "--add-opens=java.base/java.lang=ALL-UNNAMED";
