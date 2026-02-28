@@ -32,32 +32,22 @@ BOOL validateVirtualMemorySpace(size_t size) {
 }
 
 void init_loadDefaultEnv() {
-    /* Define default env */
-
-    // Silent Caciocavallo NPE error in locating Android-only lib
-    setenv("LD_LIBRARY_PATH", "", 1);
-
-    // Ignore mipmap for performance(?) seems does not affect iOS
-    //setenv("LIBGL_MIPMAP", "3", 1);
-
-    // Disable overloaded functions hack for Minecraft 1.17+
-    setenv("LIBGL_NOINTOVLHACK", "1", 1);
-
-    // Fix white color on banner and sheep, since GL4ES 1.1.5
-    setenv("LIBGL_NORMALIZE", "1", 1);
-
-    // Override OpenGL version to 4.1 for Zink
-    setenv("MESA_GL_VERSION_OVERRIDE", "4.1", 1);
-
-    // Runs JVM in a separate thread
-    setenv("HACK_IGNORE_START_ON_FIRST_THREAD", "1", 1);
-
-     // --- GL4ES SPEED BOOSTS ---
-    setenv("LIBGL_USEVBO", "1", 1);     // Moves 3D data to GPU memory instead of CPU
-    setenv("LIBGL_FBO", "1", 1);        // Better frame buffer handling
-    setenv("LIBGL_NOERROR", "1", 1);    // Skip error checking to save CPU cycles
-    setenv("LIBGL_NOTEXRECT", "1", 1);  // Use standard textures (faster)
-    setenv("LIBGL_ALPHA", "1", 1);      // Fixes some transparency issues
+    // Force GLES 2.0 (Stops the GLSL 300 es errors)
+    setenv("LIBGL_ES", "2", 1);
+    setenv("LIBGL_GLSL", "120", 1); 
+    
+    // Performance & Correctness hacks
+    setenv("LIBGL_BATCH", "1", 1);      // We can turn this back on now
+    setenv("LIBGL_USEVBO", "1", 1);
+    setenv("LIBGL_FBO", "1", 1);
+    setenv("LIBGL_NOERROR", "1", 1);
+    setenv("LIBGL_NOTEXRECT", "1", 1);
+    
+    // Fix the "Varying Color" mismatch error from your log
+    setenv("LIBGL_VARYING_FIX", "1", 1); 
+    
+    // Force a fake version string so the engine doesn't see (null)
+    setenv("LIBGL_VERSION", "2.1", 1);
 }
 
 void init_loadCustomEnv() {
