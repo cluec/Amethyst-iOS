@@ -32,10 +32,10 @@ BOOL validateVirtualMemorySpace(size_t size) {
 }
 
 void init_loadDefaultEnv() {
-    Disable Batching (This STOPS the memmove crash)
+    //Disable Batching (This STOPS the memmove crash)
     setenv("LIBGL_BATCH", "0", 1); 
     
-   Compatibility Envs
+   //Compatibility Envs
     setenv("LIBGL_ES", "2", 1);         // Use GLES 2.0
     setenv("LIBGL_GLSL", "120", 1);     // Use old shader language
     setenv("LIBGL_USEVBO", "1", 1);     // GPU Buffers ON
