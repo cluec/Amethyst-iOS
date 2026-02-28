@@ -59,8 +59,8 @@ public class PojavLauncher {
     public static void launchMinecraft(String[] args) throws Throwable {
         String gameDir = System.getProperty("user.dir");
 
-        System.setProperty("glfw.windowSize", "800x600");
-        System.setProperty("cacio.managed.screensize", "800x600");
+        if (sizeStr == null) sizeStr = "1024x768";
+        System.setProperty("glfw.windowSize", sizeStr);
 
         //DISABLE ALL SHADERS - Fixes the "Incorrect Graphics" and "varying Color" errors
         System.setProperty("com.threerings.opengl.no_shaders", "true");
