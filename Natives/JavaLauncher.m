@@ -34,30 +34,22 @@ BOOL validateVirtualMemorySpace(size_t size) {
 void init_loadDefaultEnv() {
     setenv("LD_LIBRARY_PATH", "", 1);
     
-    // --- COMPATIBILITY FIXES ---
-    // Spiral Knights is OpenGL 1.5 era. Tell GL4ES to prioritize Fixed Function Emulation (FPE)
-    setenv("LIBGL_DEFAULT_FPE", "1", 1);
-    setenv("LIBGL_GLSL_VERSION", "100", 1); // Force GLES 2.0 compatible shader output
+    // --- STABILITY FIXES (REQUIRED TO STOP THE CRASH) ---
+    setenv("LIBGL_BATCH", "0", 1);      // Disable batching - it's causing the SIGSEGV
+    setenv("LIBGL_USEVBO", "0", 1);    // Disable forced VBOs - the game engine prefers raw pointers
+    setenv("LIBGL_VBO", "0", 1);
     
-    // Fixes the "undeclared identifier" by telling GL4ES how to map variables
+    // --- RENDERING COMPATIBILITY ---
+    setenv("LIBGL_DEFAULT_FPE", "1", 1); // Keep this - it fixes the "undeclared identifier" bugs
+    setenv("LIBGL_GLSL_VERSION", "100", 1); 
     setenv("LIBGL_REMAP_VARYING", "1", 1);
-    setenv("LIBGL_VERSION", "1.5", 1); // The game expects 1.5, don't fake 2.1 if not needed
+    setenv("LIBGL_VERSION", "1.5", 1);
     
-    // --- RENDERING QUALITY/BUG FIXES ---
+    // --- BUG FIXES ---
     setenv("LIBGL_NOINTOVLHACK", "1", 1);
     setenv("LIBGL_NORMALIZE", "1", 1);
     setenv("LIBGL_ALPHA", "1", 1);
     setenv("LIBGL_FBO", "1", 1);
-
-    // --- PERFORMANCE BOOSTS ---
-    // Enable draw call batching - THIS IS THE BIGGEST FPS GAIN
-    setenv("LIBGL_BATCH", "1", 1); 
-    setenv("LIBGL_BATCH_VBO", "1", 1);
-    setenv("LIBGL_USEVBO", "1", 1);
-    setenv("LIBGL_VBO", "1", 1);
-    
-    // iOS Specific: Disable error checking for speed
-    setenv("LIBGL_NOERROR", "1", 1);
     setenv("LIBGL_NOTEXRECT", "1", 1);
     
     setenv("HACK_IGNORE_START_ON_FIRST_THREAD", "1", 1);
@@ -257,7 +249,7 @@ int launchJVM(NSString *username, id launchTarget, int width, int height, int mi
 
     // Better Garbage Collection for limited memory
     // Change SerialGC to G1GC (Better for multi-core CPUs like the A15 in iPad mini 6)
-    margv[++margc] = "-XX:+UseG1GC"; 
+    margv[++margc] = "-XX:+UseSerialGC"; 
     margv[++margc] = "-XX:MaxGCPauseMillis=20"; // Try to keep pauses under 20ms
     margv[++margc] = "-XX:InitiatingHeapOccupancyPercent=35";
 
@@ -271,8 +263,6 @@ int launchJVM(NSString *username, id launchTarget, int width, int height, int mi
 
     // try performance increase
     margv[++margc] = "-Dlibgl.none=true";            // Use optimized internal paths
-    margv[++margc] = "-Dlibgl.batch=1";              // BATCH draw calls (HUGE FPS BOOST)
-    margv[++margc] = "-Dlibgl.usevbo=1";             // Use Vertex Buffer Objects
     margv[++margc] = "-Dlibgl.fbo=1";                // Force Framebuffer Objects
     margv[++margc] = "-Dlibgl.notexrect=1";          // Skip expensive texture rectangle checks
     

@@ -89,7 +89,7 @@ public class PojavLauncher {
         System.setProperty("org.lwjgl.opengl.Display.noResizable", "true");
 
         // Important: Java2D can conflict with GL4ES if not handled.
-        System.setProperty("sun.java2d.opengl", "true");
+        System.setProperty("sun.java2d.opengl", "false");
         System.setProperty("sun.java2d.noddraw", "true");
         
         // 4. THE CRITICAL FIXES FOR THE LOG ERRORS YOU SENT:
